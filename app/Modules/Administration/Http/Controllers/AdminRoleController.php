@@ -31,7 +31,7 @@ class AdminRoleController extends AdminOrionController
 
     public function sortableBy(): array
     {
-        return ['name', 'status', 'created_at'];
+        return ['name', 'status', 'created_at', 'system'];
     }
 
     public function filterableBy(): array

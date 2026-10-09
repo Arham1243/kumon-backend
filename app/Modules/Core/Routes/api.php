@@ -2,9 +2,15 @@
 
 use App\Modules\Core\Http\Controllers\AttendanceController;
 use App\Modules\Core\Http\Controllers\AttendanceExportController;
+use App\Modules\Core\Http\Controllers\PublicKioskController;
 use App\Modules\Core\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 use Orion\Facades\Orion;
+
+Route::middleware(['throttle:public-kiosk'])->prefix('public/kiosk')->group(function () {
+    Route::get('{companyUuid}', [PublicKioskController::class, 'show']);
+    Route::post('{companyUuid}/punch', [PublicKioskController::class, 'punch']);
+});
 
 Route::middleware(['auth.any:sanctum_admin', 'check.active'])->group(function () {
     Route::middleware(['role.permission:core.students.view'])->group(function () {

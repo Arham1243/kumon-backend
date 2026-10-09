@@ -16,8 +16,10 @@ class DefaultUserSeeder extends Seeder
             return;
         }
 
+        $supportEmail = trim((string) config('mail.support_email', 'kay@intelygic.com'));
+
         User::withoutGlobalScopes()->firstOrCreate(
-            ['email' => 'kay@intelygic.com'],
+            ['email' => $supportEmail],
             [
                 'name' => 'Super Admin',
                 'status' => 'active',

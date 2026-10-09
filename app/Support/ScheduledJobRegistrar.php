@@ -48,6 +48,9 @@ final class ScheduledJobRegistrar
             $id = (int) ($job['id'] ?? 0);
             $key = trim((string) ($job['key'] ?? ''));
             $frequency = trim((string) ($job['frequency'] ?? ''));
+            $timezone = isset($job['timezone']) && is_string($job['timezone']) && trim($job['timezone']) !== ''
+                ? trim($job['timezone'])
+                : null;
 
             if ($id <= 0 || $key === '') {
                 continue;
@@ -75,11 +78,15 @@ final class ScheduledJobRegistrar
                     ]);
                 });
 
+            if ($timezone !== null) {
+                $event->timezone($timezone);
+            }
+
         }
     }
 
     /**
-     * @return list<array{id: int, key: string, frequency: string}>
+     * @return list<array{id: int, key: string, frequency: string, timezone: ?string}>
      */
     private function loadActiveJobDefinitions(): array
     {
@@ -89,7 +96,7 @@ final class ScheduledJobRegistrar
 
         $ttl = (int) config('scheduler.active_jobs_cache_ttl', 60);
 
-        /** @var list<array{id: int, key: string, frequency: string}> $definitions */
+        /** @var list<array{id: int, key: string, frequency: string, timezone: ?string}> $definitions */
         $definitions = Cache::remember(
             ScheduledJob::CACHE_KEY,
             $ttl,
@@ -100,11 +107,12 @@ final class ScheduledJobRegistrar
 
                 return ScheduledJob::query()
                     ->where('enabled', true)
-                    ->get(['id', 'key', 'frequency'])
+                    ->get(['id', 'key', 'frequency', 'timezone'])
                     ->map(static fn (ScheduledJob $job): array => [
                         'id' => (int) $job->id,
                         'key' => (string) $job->key,
                         'frequency' => (string) $job->frequency,
+                        'timezone' => filled($job->timezone) ? (string) $job->timezone : null,
                     ])
                     ->values()
                     ->all();

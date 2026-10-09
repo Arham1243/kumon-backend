@@ -34,7 +34,8 @@ class RoleSeeder extends Seeder
         $allPermissions = Permission::where('guard_name', 'sanctum')->get();
         $superAdmin->syncPermissions($allPermissions);
 
-        $admin = User::withoutGlobalScopes()->where('email', 'admin@project.com')->first();
+        $supportEmail = trim((string) config('mail.support_email', 'kay@intelygic.com'));
+        $admin = User::withoutGlobalScopes()->where('email', $supportEmail)->first();
         if ($admin) {
             $admin->update([
                 'role_id' => $superAdmin->id,

@@ -68,9 +68,9 @@ class MailService
 
         return (object) [
             'from' => 'noreply',
-            'display_name' => config('mail.from.name', 'AdaptiveQMS'),
-            'reply_to_email' => config('mail.from.address', ''),
-            'reply_to_name' => config('mail.from.name', ''),
+            'display_name' => config('mail.from.name', 'Kumon'),
+            'reply_to_email' => config('mail.reply_to.address', 'noreply@mail.servicore.io'),
+            'reply_to_name' => config('mail.reply_to.name', 'No Reply'),
             'bcc_recipients' => null,
             'slug' => null,
         ];
@@ -129,11 +129,11 @@ class MailService
 
             $fromName = trim((string) ($template->display_name ?? ''));
             if ($fromName === '') {
-                $fromName = (string) config('mail.from.name', 'AdaptiveQMS');
+                $fromName = (string) config('mail.from.name', 'Kumon');
             }
             $from = '"'.addcslashes($fromName, "\"\\").'" <'.$fromAddress.'>';
 
-            $tags = ['adaptiveqms'];
+            $tags = ['kumon'];
             if (! empty($template->slug)) {
                 $tags[] = MailgunReportingService::templateTag((string) $template->slug);
             }

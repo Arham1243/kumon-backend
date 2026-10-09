@@ -1,7 +1,7 @@
 <?php
 
 /**
- * AdaptiveQMS brand colors — keep in sync with qms-admin-frontend
+ * Kumon brand colors — keep in sync with kumon-frontend
  * {@see src/plugins/app-preset.js} semantic.primary.500 / .600
  */
 return [

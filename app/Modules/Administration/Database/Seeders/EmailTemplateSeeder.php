@@ -43,6 +43,16 @@ class EmailTemplateSeeder extends Seeder
                 'body_html' => '<p style="margin:0;">Welcome aboard! To get started, simply activate your account by clicking the button below.</p>',
                 'footer_html' => AdminEmailTemplate::DEFAULT_COPYRIGHT_LINE,
             ],
+            [
+                'slug' => AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER,
+                'name' => 'Open Attendance Reminder to Super Admin',
+                'from' => 'info',
+                'intro_html' => '<p style="margin:0;">Hi {{name}},</p>',
+                'body_html' => '<p style="margin:0 0 12px 0;">The following students checked in today but do not have a checkout recorded yet. Please mark their checkout on the attendance screen so tomorrow runs smoothly.</p>'
+                    .'<p style="margin:0 0 12px 0;">{{attendance_table}}</p>'
+                    .'<p style="margin:0;">If checkout is not recorded, the system will close these entries automatically at the end of the day.</p>',
+                'footer_html' => AdminEmailTemplate::DEFAULT_COPYRIGHT_LINE,
+            ],
         ];
 
         foreach ($templates as $row) {

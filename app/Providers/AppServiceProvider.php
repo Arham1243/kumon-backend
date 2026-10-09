@@ -55,5 +55,18 @@ class AppServiceProvider extends ServiceProvider
             'public-health',
             static fn (Request $request): Limit => Limit::perMinute($healthPerMinute)->by($request->ip())
         );
+
+        $kioskPerMinute = (int) env('PUBLIC_KIOSK_PER_MINUTE', 20);
+
+        RateLimiter::for(
+            'public-kiosk',
+            static function (Request $request) use ($kioskPerMinute): Limit {
+                $companyUuid = $request->route('companyUuid') ?? 'unknown';
+
+                return Limit::perMinute($kioskPerMinute)->by(
+                    $request->ip().'|'.$companyUuid
+                );
+            }
+        );
     }
 }

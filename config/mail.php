@@ -115,11 +115,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Support / reply-to inbox
+    | Default Reply-To (admin email templates)
     |--------------------------------------------------------------------------
-    |
-    | Default reply-to on auth email templates (see AdminEmailTemplate).
-    |
+    */
+
+    'reply_to' => [
+        'address' => env('MAIL_REPLY_TO_ADDRESS', 'noreply@mail.servicore.io'),
+        'name' => env('MAIL_REPLY_TO_NAME', 'No Reply'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Support inbox (default admin user seed, etc.)
+    |--------------------------------------------------------------------------
     */
 
     'support_email' => env('SUPPORT_EMAIL', 'kay@intelygic.com'),

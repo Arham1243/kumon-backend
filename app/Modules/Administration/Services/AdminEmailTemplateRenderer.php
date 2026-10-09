@@ -3,6 +3,7 @@
 namespace App\Modules\Administration\Services;
 
 use App\Modules\Administration\Models\Admin\AdminEmailTemplate;
+use App\Modules\Core\Services\OpenAttendanceTableHtml;
 
 /**
  * Resolves HTML for outbound emails driven by {@see AdminEmailTemplate} rows.
@@ -50,6 +51,10 @@ class AdminEmailTemplateRenderer
      */
     public function buildPreview(string $slug, array $fieldOverrides = [], array $placeholderOverrides = []): array
     {
+        if ($slug === AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER) {
+            return $this->buildOpenAttendanceReminderEmail($fieldOverrides, $placeholderOverrides);
+        }
+
         if (! AdminEmailTemplate::isAuthSlug($slug)) {
             return [
                 'html' => '<p>Preview is not available for this template.</p>',
@@ -139,6 +144,62 @@ class AdminEmailTemplateRenderer
             'companyId' => null,
             'copyrightLine' => $footer,
             'otpCode' => filled($otpCode) ? (string) $otpCode : null,
+        ])->render();
+
+        return ['html' => $html, 'subject' => $subject];
+    }
+
+    /**
+     * @param  array<string, string|int>  $placeholderOverrides
+     * @return array{html: string, subject: string}
+     */
+    public function buildOpenAttendanceReminderEmail(
+        array $fieldOverrides = [],
+        array $placeholderOverrides = []
+    ): array {
+        $slug = AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER;
+        $placeholders = array_merge([
+            'name' => 'Super Admin',
+            'year' => now()->format('Y'),
+            'attendance_table' => app(OpenAttendanceTableHtml::class)->renderPreviewSample(),
+        ], $placeholderOverrides);
+
+        $row = $this->activeRow($slug);
+
+        $subjectTemplate = $fieldOverrides['subject_template']
+            ?? $row?->subject_template
+            ?? AdminEmailTemplate::defaultSubjectTemplateForSlug($slug);
+
+        $intro = $this->interpolate(
+            $fieldOverrides['intro_html'] ?? $row?->intro_html,
+            $placeholders
+        );
+        $bodyTemplate = $fieldOverrides['body_html'] ?? $row?->body_html;
+        $bodyWithTable = $this->interpolate($bodyTemplate, $placeholders);
+        $footer = $this->interpolate(
+            $fieldOverrides['footer_html'] ?? $row?->footer_html ?? AdminEmailTemplate::DEFAULT_COPYRIGHT_LINE,
+            $placeholders
+        );
+
+        $subject = $this->normalizeMailSubject($this->interpolate($subjectTemplate, $placeholders));
+
+        $frontendBase = rtrim((string) config('app.frontend_url', 'http://localhost:3000'), '/');
+        $ctaUrl = $frontendBase.'/attendance';
+
+        $html = view('emails.admin._layout', [
+            'headline' => '',
+            'greetingName' => '',
+            'htmlTitle' => $subject,
+            'introHtml' => $intro,
+            'bodyHtml' => filled($bodyWithTable) ? $bodyWithTable : null,
+            'rows' => [],
+            'ticket' => null,
+            'ctaUrl' => $ctaUrl,
+            'ctaLabel' => AdminEmailTemplate::defaultCtaLabelForSlug($slug) ?? 'Open Attendance',
+            'ctaAlign' => 'center',
+            'companyId' => $row?->company_id,
+            'copyrightLine' => $footer,
+            'otpCode' => null,
         ])->render();
 
         return ['html' => $html, 'subject' => $subject];

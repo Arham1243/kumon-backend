@@ -8,7 +8,7 @@ use Mailgun\Model\Stats\TotalResponse;
 
 class MailgunReportingService
 {
-    public const TEMPLATE_TAG_PREFIX = 'adaptiveqms-template:';
+    public const TEMPLATE_TAG_PREFIX = 'kumon-template:';
 
     public static function templateTag(string $slug): string
     {

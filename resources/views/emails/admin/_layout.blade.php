@@ -34,7 +34,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $htmlTitle ?? (filled($headline) ? $headline : (optional($ticket)->subject ?: 'Ticket update')) }} - AdaptiveQMS</title>
+    <title>{{ $htmlTitle ?? (filled($headline) ? $headline : (optional($ticket)->subject ?: 'Ticket update')) }} - Kumon</title>
 </head>
 <body style="margin:0; padding:24px 12px; background-color:#f4f4f5; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
     <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">

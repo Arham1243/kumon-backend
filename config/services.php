@@ -18,6 +18,10 @@ return [
         'token' => $sharedCronApiToken,
     ],
 
+    'attendance_cron' => [
+        'token' => $sharedCronApiToken,
+    ],
+
     'healthcheck' => [
         'url' => env('HEALTHCHECK_URL'),
     ],

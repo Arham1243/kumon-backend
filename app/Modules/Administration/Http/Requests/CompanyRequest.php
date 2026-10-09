@@ -2,6 +2,7 @@
 
 namespace App\Modules\Administration\Http\Requests;
 
+use App\Enums\CompanyTimezone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +28,12 @@ class CompanyRequest extends FormRequest
             'zip' => ['nullable', 'string', 'max:32'],
             'country' => ['nullable', 'string', 'max:120'],
             'logo' => ['nullable', 'string'],
-            'timezone' => ['required', 'string', 'max:100', 'timezone:all'],
+            'timezone' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::in(CompanyTimezone::allowedValues()),
+            ],
             'date_format' => [
                 'required',
                 'string',

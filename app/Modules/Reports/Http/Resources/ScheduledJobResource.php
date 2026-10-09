@@ -15,6 +15,7 @@ class ScheduledJobResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'frequency' => $this->frequency,
+            'timezone' => $this->timezone,
             'enabled' => (bool) $this->enabled,
             'last_run_at' => $this->last_run_at,
             'last_run_status' => $this->last_run_status,

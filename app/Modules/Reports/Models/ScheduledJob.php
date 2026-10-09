@@ -27,6 +27,7 @@ class ScheduledJob extends Model
         'endpoint',
         'token_config_key',
         'frequency',
+        'timezone',
         'enabled',
         'last_run_at',
         'last_run_status',

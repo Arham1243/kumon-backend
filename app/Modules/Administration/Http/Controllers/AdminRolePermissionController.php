@@ -14,6 +14,7 @@ class AdminRolePermissionController extends Controller
     private array $adminModulePrefixes = [
         'administration',
         'reports',
+        'core',
     ];
 
     /** @return array<string, list<string>> */

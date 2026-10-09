@@ -2,6 +2,7 @@
 
 namespace App\Modules\Core\Database\Seeders;
 
+use App\Enums\CompanyTimezone;
 use App\Modules\Core\Models\Company;
 use Illuminate\Database\Seeder;
 
@@ -12,7 +13,7 @@ class CompanySeeder extends Seeder
         Company::query()->firstOrCreate(
             ['name' => 'Kumon'],
             [
-                'timezone' => 'America/New_York',
+                'timezone' => CompanyTimezone::defaultValue(),
                 'date_format' => 'mm/dd/yy',
             ]
         );

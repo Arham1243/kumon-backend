@@ -18,6 +18,8 @@ class AdminEmailTemplate extends Model
 
     public const SLUG_SETUP_PASSWORD = 'setup-password';
 
+    public const SLUG_OPEN_ATTENDANCE_REMINDER = 'open-attendance-reminder';
+
     public static function isAuthSlug(string $slug): bool
     {
         return in_array($slug, [
@@ -32,11 +34,12 @@ class AdminEmailTemplate extends Model
         return match ($slug) {
             self::SLUG_RESET_PASSWORD => 'Password Reset',
             self::SLUG_SETUP_PASSWORD => 'Get Started',
+            self::SLUG_OPEN_ATTENDANCE_REMINDER => 'Open Attendance',
             default => null,
         };
     }
 
-    public const DEFAULT_COPYRIGHT_LINE = '© {{year}} AdaptiveQMS. All rights reserved.';
+    public const DEFAULT_COPYRIGHT_LINE = '© {{year}} Kumon. All rights reserved.';
 
     public static function defaultSubjectTemplateForSlug(string $slug): string
     {
@@ -44,6 +47,7 @@ class AdminEmailTemplate extends Model
             self::SLUG_LOGIN_OTP => 'Verification Code',
             self::SLUG_RESET_PASSWORD => 'Password Reset',
             self::SLUG_SETUP_PASSWORD => 'Welcome - Set Up Your Password',
+            self::SLUG_OPEN_ATTENDANCE_REMINDER => 'Open Attendance Reminder',
             default => 'Notification',
         };
     }
@@ -55,9 +59,9 @@ class AdminEmailTemplate extends Model
     {
         return [
             'from' => 'support',
-            'display_name' => (string) config('mail.from.name', 'AdaptiveQMS'),
-            'reply_to_email' => trim((string) config('mail.support_email', 'kay@intelygic.com')),
-            'reply_to_name' => (string) config('mail.from.name', 'AdaptiveQMS'),
+            'display_name' => (string) config('mail.from.name', 'Kumon'),
+            'reply_to_email' => trim((string) config('mail.reply_to.address', 'noreply@mail.servicore.io')),
+            'reply_to_name' => (string) config('mail.reply_to.name', 'No Reply'),
             'bcc_recipients' => null,
         ];
     }
