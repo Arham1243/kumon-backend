@@ -5,6 +5,8 @@ namespace App\Modules\Core\Models;
 use App\Traits\BelongsToCompany;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 class Student extends Model
 {
@@ -15,19 +17,26 @@ class Student extends Model
 
     protected $guarded = ['id', 'uuid', 'created_at', 'updated_at'];
 
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
     public function dependencies(): array
     {
-        return [];
+        return [
+            'attendances' => $this->attendances()->exists(),
+        ];
     }
 
     protected static function booted()
     {
-        static::deleting(function ($customer) {
-            $dependencies = $customer->dependencies();
+        static::deleting(function (Student $student) {
+            $dependencies = $student->dependencies();
 
             if (in_array(true, $dependencies, true)) {
                 throw ValidationException::withMessages([
-                    'student' => 'This student is in use and cannot be deleted.',
+                    'student' => 'This student has attendance records and cannot be deleted.',
                 ]);
             }
         });
