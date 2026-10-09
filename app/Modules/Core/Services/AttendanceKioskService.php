@@ -74,10 +74,23 @@ class AttendanceKioskService
                     return ['code' => 'attendance_complete'];
                 }
 
+                $checkIn = $this->rules->normalizeTime($attendance->check_in_time);
+                if ($checkIn !== null) {
+                    try {
+                        $in = Carbon::createFromFormat('H:i', $checkIn);
+                        $out = Carbon::createFromFormat('H:i', $time);
+                        if (! $out->gt($in)) {
+                            return ['code' => 'wait_before_checkout'];
+                        }
+                    } catch (\Throwable) {
+                        // Fall through to full validation.
+                    }
+                }
+
                 $attributes = [
                     'student_id' => $student->id,
                     'date' => $today,
-                    'check_in_time' => $this->rules->normalizeTime($attendance->check_in_time),
+                    'check_in_time' => $checkIn,
                     'check_out_time' => $time,
                 ];
 
