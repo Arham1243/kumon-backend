@@ -1,0 +1,32 @@
+name: Deploy main
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: kumon-backend-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy on server
+    runs-on: ubuntu-latest
+    environment: main
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ vars.DEPLOY_PATH }}"
+            git fetch origin main
+            git reset --hard origin/main
+            composer install --no-dev --optimize-autoloader --no-interaction
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
