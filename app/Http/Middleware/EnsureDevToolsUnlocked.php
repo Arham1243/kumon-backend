@@ -16,7 +16,7 @@ class EnsureDevToolsUnlocked
     public function handle(Request $request, Closure $next): Response
     {
         if (! config('auth.otp.fallback_enabled')) {
-            abort(403);
+            abort(404);
         }
 
         $token = self::readToken($request);

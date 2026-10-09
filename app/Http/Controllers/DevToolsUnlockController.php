@@ -14,7 +14,7 @@ class DevToolsUnlockController extends Controller
     public function show(Request $request): View
     {
         if (! config('auth.otp.fallback_enabled')) {
-            abort(403);
+            abort(404);
         }
 
         $path = $this->normalizeIntended($request->query('intended', '/terminal'));
@@ -27,7 +27,7 @@ class DevToolsUnlockController extends Controller
     public function unlock(Request $request): RedirectResponse
     {
         if (! config('auth.otp.fallback_enabled')) {
-            abort(403);
+            abort(404);
         }
 
         $validated = $request->validate([
