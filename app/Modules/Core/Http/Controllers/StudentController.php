@@ -27,12 +27,12 @@ class StudentController extends AdminOrionController
 
     public function sortableBy(): array
     {
-        return ['student_id', 'name', 'status', 'created_at'];
+        return ['student_id', 'name', 'created_at'];
     }
 
     public function filterableBy(): array
     {
-        return ['student_id', 'name', 'status'];
+        return ['student_id', 'name'];
     }
 
     protected function beforeSave(OrionRequest $request, Model $entity): void
@@ -45,17 +45,6 @@ class StudentController extends AdminOrionController
         if ($user && $user->company_id && empty($entity->company_id)) {
             $entity->company_id = $user->company_id;
         }
-
-        if (! $entity->exists && $entity->status === null) {
-            $entity->status = true;
-        }
-    }
-
-    public function changeStatus(Student $student)
-    {
-        $student->update(['status' => ! $student->status]);
-
-        return new StudentResource($student->fresh());
     }
 
     public function deleteStudent(Student $student)

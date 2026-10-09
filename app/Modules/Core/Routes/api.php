@@ -21,7 +21,6 @@ Route::middleware(['auth.any:sanctum_admin', 'check.active'])->group(function ()
         Orion::resource('students', StudentController::class, [
             'only' => ['update'],
         ])->withoutBatch();
-        Route::post('students/{student}/change-status', [StudentController::class, 'changeStatus']);
     });
 
     Route::middleware(['role.permission:core.students.delete'])->group(function () {

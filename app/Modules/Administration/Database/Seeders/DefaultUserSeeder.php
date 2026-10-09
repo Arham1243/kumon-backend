@@ -17,7 +17,7 @@ class DefaultUserSeeder extends Seeder
         }
 
         User::withoutGlobalScopes()->firstOrCreate(
-            ['email' => 'admin@project.com'],
+            ['email' => 'kay@intelygic.com'],
             [
                 'name' => 'Super Admin',
                 'status' => 'active',

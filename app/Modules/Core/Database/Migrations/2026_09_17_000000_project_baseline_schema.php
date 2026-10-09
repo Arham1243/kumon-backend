@@ -35,7 +35,6 @@ return new class extends Migration
             $table->foreignId('company_id')->constrained('admin_companies')->cascadeOnDelete();
             $table->string('student_id', 64);
             $table->string('name');
-            $table->boolean('status')->default(true);
             $table->timestamps();
 
             $table->unique(['company_id', 'student_id']);

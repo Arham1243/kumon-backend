@@ -23,13 +23,6 @@ class StudentRequest extends Request
         ];
     }
 
-    public function commonRules(): array
-    {
-        return [
-            'status' => ['sometimes', 'boolean'],
-        ];
-    }
-
     /**
      * @return list<mixed>
      */
