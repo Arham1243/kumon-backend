@@ -44,6 +44,7 @@ return new class extends Migration
         }
 
         Schema::table('students', function (Blueprint $table) {
+            $table->dropForeign(['company_id']);
             $table->dropUnique(['company_id', 'student_id']);
         });
 
@@ -53,6 +54,7 @@ return new class extends Migration
 
         Schema::table('students', function (Blueprint $table) {
             $table->unique(['company_id', 'student_id']);
+            $table->foreign('company_id')->references('id')->on('admin_companies')->cascadeOnDelete();
         });
     }
 
@@ -68,6 +70,7 @@ return new class extends Migration
         }
 
         Schema::table('students', function (Blueprint $table) {
+            $table->dropForeign(['company_id']);
             $table->dropUnique(['company_id', 'student_id']);
         });
 
@@ -77,6 +80,7 @@ return new class extends Migration
 
         Schema::table('students', function (Blueprint $table) {
             $table->unique(['company_id', 'student_id']);
+            $table->foreign('company_id')->references('id')->on('admin_companies')->cascadeOnDelete();
         });
     }
 };
