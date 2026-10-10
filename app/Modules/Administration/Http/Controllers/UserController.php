@@ -123,19 +123,19 @@ class UserController extends AdminOrionController
         }
     }
 
-    public function changeStatus(User $admin)
+    public function changeStatus(User $user)
     {
-        $newStatus = $admin->status === 'active' ? 'inactive' : 'active';
-        $admin->update(['status' => $newStatus]);
+        $newStatus = $user->status === 'active' ? 'inactive' : 'active';
+        $user->update(['status' => $newStatus]);
 
-        return new UserResource($admin->fresh());
+        return new UserResource($user->fresh());
     }
 
-    public function deleteUser(User $admin)
+    public function deleteUser(User $user)
     {
-        $admin->tokens()->delete();
-        $admin->delete();
+        $user->tokens()->delete();
+        $user->delete();
 
-        return response()->json(['message' => 'Admin deleted successfully.']);
+        return response()->json(['message' => 'User deleted successfully.']);
     }
 }

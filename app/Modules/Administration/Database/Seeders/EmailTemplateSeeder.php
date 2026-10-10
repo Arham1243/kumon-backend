@@ -20,7 +20,7 @@ class EmailTemplateSeeder extends Seeder
         $templates = [
             [
                 'slug' => AdminEmailTemplate::SLUG_LOGIN_OTP,
-                'name' => 'Login OTP Email to Admin',
+                'name' => 'Login OTP Email to User',
                 'from' => 'verification',
                 'intro_html' => '<p style="margin:0;">Hello {{name}},</p>',
                 'body_html' => '<p style="margin:0;">We received a login attempt from a new device. To verify your identity, please use the verification code displayed below.</p>'
@@ -29,7 +29,7 @@ class EmailTemplateSeeder extends Seeder
             ],
             [
                 'slug' => AdminEmailTemplate::SLUG_RESET_PASSWORD,
-                'name' => 'Password Reset Email to Admin',
+                'name' => 'Password Reset Email to User',
                 'from' => 'info',
                 'intro_html' => '<p style="margin:0;">Hi {{name}},</p>',
                 'body_html' => '<p style="margin:0;">Looks like you forgot your password. No worries! We\'ll help you reset it just click the button below.</p>',
@@ -37,7 +37,7 @@ class EmailTemplateSeeder extends Seeder
             ],
             [
                 'slug' => AdminEmailTemplate::SLUG_SETUP_PASSWORD,
-                'name' => 'Welcome Email to Admin',
+                'name' => 'Welcome Email to User',
                 'from' => 'info',
                 'intro_html' => '<p style="margin:0;">Hi {{name}},</p>',
                 'body_html' => '<p style="margin:0;">Welcome aboard! To get started, simply activate your account by clicking the button below.</p>',
@@ -45,7 +45,7 @@ class EmailTemplateSeeder extends Seeder
             ],
             [
                 'slug' => AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER,
-                'name' => 'Open Attendance Reminder to Super Admin',
+                'name' => 'Open Attendance Reminder to Admin',
                 'from' => 'info',
                 'intro_html' => '<p style="margin:0;">Hi {{name}},</p>',
                 'body_html' => '<p style="margin:0 0 12px 0;">The following students checked in today but do not have a checkout recorded yet. Please mark their checkout on the attendance screen so tomorrow runs smoothly.</p>'
