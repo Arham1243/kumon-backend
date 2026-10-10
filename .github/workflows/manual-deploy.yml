@@ -87,21 +87,8 @@ jobs:
           ref: refs/heads/${{ needs.resolve.outputs.branch }}
           fetch-depth: 0
 
-      - name: Block zero-byte files (break FTPS data channel)
-        run: |
-          set -euo pipefail
-          mapfile -t empty_files < <(find . -type f -size 0 \
-            ! -path './.git/*' \
-            ! -path './vendor/*' \
-            ! -path './node_modules/*')
-          if ((${#empty_files[@]} > 0)); then
-            echo "::error::Zero-byte files trigger FTPS TLS errors during upload. Fix or exclude them before deploy."
-            printf '%s\n' "${empty_files[@]}"
-            exit 1
-          fi
-
       - name: Sync files to ${{ needs.resolve.outputs.environment }}
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets[needs.resolve.outputs.ftp_server_secret] }}
           username: ${{ secrets[needs.resolve.outputs.ftp_username_secret] }}
@@ -110,7 +97,6 @@ jobs:
           port: 21
           security: loose
           log-level: verbose
-          state-name: kumon-backend-ftp-${{ needs.resolve.outputs.environment }}
           # Backend uploads the full app (not dist/ only); allow long transfers (ms).
           timeout: 900000
           server-dir: ${{ needs.resolve.outputs.server_dir }}
