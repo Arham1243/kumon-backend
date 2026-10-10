@@ -70,8 +70,12 @@ class EnsureDevToolsUnlocked
             return '/terminal';
         }
 
+        if ($path === '/composer/run' || str_starts_with($path, '/composer/')) {
+            return '/composer';
+        }
+
         return match ($path) {
-            '/db-console', '/env-editor', '/terminal', '/logs' => $path,
+            '/db-console', '/env-editor', '/terminal', '/composer', '/logs' => $path,
             '/logs/delete' => '/logs',
             default => '/terminal',
         };

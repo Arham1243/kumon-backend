@@ -9,9 +9,6 @@ use Illuminate\Validation\ValidationException;
 class ComposerController extends Controller
 {
     /** @var list<string> */
-    private const ALLOWED_COMMANDS = ['install', 'update'];
-
-    /** @var list<string> */
     private const ALLOWED_FLAGS = [
         '--no-dev',
         '--optimize-autoloader',

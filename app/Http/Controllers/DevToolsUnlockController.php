@@ -9,7 +9,7 @@ use Illuminate\View\View;
 
 class DevToolsUnlockController extends Controller
 {
-    private const ALLOWED_PATHS = ['/terminal', '/db-console', '/env-editor', '/logs'];
+    private const ALLOWED_PATHS = ['/terminal', '/composer', '/db-console', '/env-editor', '/logs'];
 
     public function show(Request $request): View
     {

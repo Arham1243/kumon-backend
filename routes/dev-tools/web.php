@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ComposerController;
 use App\Http\Controllers\DBConsoleController;
 use App\Http\Controllers\DevToolsUnlockController;
 use App\Http\Controllers\EnvEditorController;
@@ -14,6 +15,9 @@ Route::post('/dev-tools/unlock', [DevToolsUnlockController::class, 'unlock'])->n
 Route::middleware(EnsureDevToolsUnlocked::class)->group(function () {
     Route::get('/terminal', [TerminalController::class, 'index']);
     Route::post('/terminal/run', [TerminalController::class, 'run']);
+
+    Route::get('/composer', [ComposerController::class, 'index']);
+    Route::post('/composer/run', [ComposerController::class, 'run']);
 
     Route::get('/db-console', [DBConsoleController::class, 'index']);
     Route::post('/db-console', [DBConsoleController::class, 'run'])->name('db.console.run');
