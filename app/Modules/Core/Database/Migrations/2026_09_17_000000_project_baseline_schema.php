@@ -33,7 +33,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignId('company_id')->constrained('admin_companies')->cascadeOnDelete();
-            $table->string('student_id', 64);
+            $table->unsignedBigInteger('student_id');
             $table->string('name');
             $table->timestamps();
 

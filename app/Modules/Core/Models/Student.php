@@ -17,6 +17,13 @@ class Student extends Model
 
     protected $guarded = ['id', 'uuid', 'created_at', 'updated_at'];
 
+    protected function casts(): array
+    {
+        return [
+            'student_id' => 'integer',
+        ];
+    }
+
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);

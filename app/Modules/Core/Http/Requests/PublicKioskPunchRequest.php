@@ -17,7 +17,7 @@ class PublicKioskPunchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'student_id' => ['required', 'string', 'max:64', 'alpha_num'],
+            'student_id' => ['required', 'integer', 'min:1'],
         ];
     }
 }

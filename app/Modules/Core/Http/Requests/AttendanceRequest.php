@@ -37,10 +37,7 @@ class AttendanceRequest extends Request
                 return;
             }
 
-            $existing = $this->route('attendance');
-            if ($existing !== null && ! $existing instanceof Attendance) {
-                $existing = null;
-            }
+            $existing = $this->existingAttendance();
 
             /** @var AttendanceRules $rules */
             $rules = app(AttendanceRules::class);
@@ -52,6 +49,24 @@ class AttendanceRequest extends Request
                 }
             }
         });
+    }
+
+    /**
+     * Orion passes the route key as a string, so implicit model binding does not run.
+     */
+    protected function existingAttendance(): ?Attendance
+    {
+        $routeAttendance = $this->route('attendance');
+
+        if ($routeAttendance instanceof Attendance) {
+            return $routeAttendance;
+        }
+
+        if (! is_string($routeAttendance) || $routeAttendance === '') {
+            return null;
+        }
+
+        return Attendance::query()->where('uuid', $routeAttendance)->first();
     }
 
     /**

@@ -39,6 +39,15 @@ class StudentRequest extends Request
             $unique = $unique->ignore($this->route('student'), 'uuid');
         }
 
-        return ['required', 'string', 'max:64', 'alpha_num', $unique];
+        return ['bail', 'required', 'integer', 'min:1', $unique];
+    }
+
+    public function commonMessages(): array
+    {
+        return [
+            'student_id.required' => 'Student ID is required.',
+            'student_id.integer' => 'Student ID must be an integer.',
+            'student_id.min' => 'Student ID must be at least 1.',
+        ];
     }
 }

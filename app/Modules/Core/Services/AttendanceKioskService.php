@@ -16,12 +16,19 @@ class AttendanceKioskService
     ) {}
 
     /**
-     * @return array{code: string}
+     * @return array{code: string, student_name?: string}
      */
-    public function punch(Company $company, string $studentIdCode): array
+    public function punch(Company $company, int|string $studentIdCode): array
     {
-        $studentIdCode = trim($studentIdCode);
-        if ($studentIdCode === '') {
+        if (is_string($studentIdCode)) {
+            $studentIdCode = trim($studentIdCode);
+            if ($studentIdCode === '' || ! preg_match('/^\d+$/', $studentIdCode)) {
+                return ['code' => 'invalid_student_id'];
+            }
+            $studentIdCode = (int) $studentIdCode;
+        }
+
+        if ($studentIdCode < 1) {
             return ['code' => 'invalid_student_id'];
         }
 
@@ -66,7 +73,10 @@ class AttendanceKioskService
                         'check_out_time' => null,
                     ]);
 
-                    return ['code' => 'checked_in'];
+                    return [
+                        'code' => 'checked_in',
+                        'student_name' => (string) $student->name,
+                    ];
                 }
 
                 $existingCheckOut = $this->rules->normalizeTime($attendance->check_out_time);
@@ -99,7 +109,10 @@ class AttendanceKioskService
                 $attendance->check_out_time = $time;
                 $attendance->save();
 
-                return ['code' => 'checked_out'];
+                return [
+                    'code' => 'checked_out',
+                    'student_name' => (string) $student->name,
+                ];
             });
         } catch (ValidationException) {
             return ['code' => 'unable_to_record'];
