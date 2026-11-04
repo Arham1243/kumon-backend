@@ -3,6 +3,7 @@
 use App\Modules\Core\Http\Controllers\AttendanceController;
 use App\Modules\Core\Http\Controllers\AttendanceExportController;
 use App\Modules\Core\Http\Controllers\PublicKioskController;
+use App\Modules\Core\Http\Controllers\StudentCardHistoriesController;
 use App\Modules\Core\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 use Orion\Facades\Orion;
@@ -12,8 +13,15 @@ Route::middleware(['throttle:public-kiosk'])->prefix('public/kiosk')->group(func
     Route::post('{companyUuid}/punch', [PublicKioskController::class, 'punch']);
 });
 
+Route::middleware(['throttle:public-kiosk-card'])->prefix('public/kiosk')->group(function () {
+    Route::post('{companyUuid}/card', [PublicKioskController::class, 'card']);
+});
+
 Route::middleware(['auth.any:sanctum_admin', 'check.active'])->group(function () {
     Route::middleware(['role.permission:core.students.view'])->group(function () {
+        Orion::hasManyResource('students', 'card-histories', StudentCardHistoriesController::class, [
+            'only' => ['search'],
+        ])->withoutBatch();
         Orion::resource('students', StudentController::class, [
             'only' => ['index', 'search', 'show'],
         ])->withoutBatch();

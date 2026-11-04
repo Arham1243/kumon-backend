@@ -2,6 +2,9 @@
 
 namespace App\Modules\Core\Http\Requests;
 
+use App\Modules\Core\Models\Student;
+use App\Modules\Core\Rules\CardUidRule;
+use App\Modules\Core\Rules\UniqueCompanyCardUid;
 use Illuminate\Validation\Rule;
 use Orion\Http\Requests\Request;
 
@@ -12,6 +15,7 @@ class StudentRequest extends Request
         return [
             'student_id' => $this->studentIdRules(),
             'name' => ['required', 'string', 'max:255'],
+            'card_uid' => $this->cardUidRules(),
         ];
     }
 
@@ -20,6 +24,7 @@ class StudentRequest extends Request
         return [
             'student_id' => ['sometimes', ...$this->studentIdRules()],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'card_uid' => ['sometimes', 'nullable', ...array_slice($this->cardUidRules(), 1)],
         ];
     }
 
@@ -40,6 +45,24 @@ class StudentRequest extends Request
         }
 
         return ['bail', 'required', 'integer', 'min:1', $unique];
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    protected function cardUidRules(): array
+    {
+        $student = $this->route('student');
+        $ignore = $student instanceof Student
+            ? $student
+            : (is_string($student) ? $student : null);
+
+        return [
+            'nullable',
+            'bail',
+            new CardUidRule,
+            new UniqueCompanyCardUid($ignore),
+        ];
     }
 
     public function commonMessages(): array

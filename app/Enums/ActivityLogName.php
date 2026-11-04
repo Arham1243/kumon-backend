@@ -9,4 +9,5 @@ enum ActivityLogName: string
     case ScheduledJob = 'Scheduled Job';
     case EmailTemplate = 'Email Template';
     case Company = 'Company';
+    case Student = 'Student';
 }

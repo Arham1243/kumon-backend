@@ -4,6 +4,8 @@ use App\Modules\Reports\Http\Controllers\ActivityController;
 use App\Modules\Reports\Http\Controllers\EmailLogController;
 use App\Modules\Reports\Http\Controllers\EmailLogExportController;
 use App\Modules\Reports\Http\Controllers\ScheduledJobController;
+use App\Modules\Reports\Http\Controllers\StudentCardHistoryController;
+use App\Modules\Reports\Http\Controllers\StudentCardHistoryExportController;
 use Illuminate\Support\Facades\Route;
 use Orion\Facades\Orion;
 
@@ -31,6 +33,13 @@ Route::middleware(['auth.any:sanctum_admin', 'check.active'])->group(function ()
 
     Route::middleware(['role.permission:reports.audit-log.view'])->group(function () {
         Orion::resource('activities', ActivityController::class, [
+            'only' => ['index', 'search', 'show'],
+        ])->withoutBatch();
+    });
+
+    Route::middleware(['role.permission:reports.student-cards.view'])->group(function () {
+        Route::post('student-card-histories/export', [StudentCardHistoryExportController::class, 'export']);
+        Orion::resource('student-card-histories', StudentCardHistoryController::class, [
             'only' => ['index', 'search', 'show'],
         ])->withoutBatch();
     });

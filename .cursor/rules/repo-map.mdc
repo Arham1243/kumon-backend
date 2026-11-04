@@ -1,0 +1,12 @@
+---
+description: Repo map
+alwaysApply: true
+---
+- Stack: Laravel 11, PHP 8.2, Eloquent, MySQL, Sanctum, Spatie permission, validation via Form Requests.
+- Modules: `app/Modules/<Name>/` with `ServiceProvider.php`, `Routes/api.php`, `Http/Controllers`, `Http/Requests`, `Http/Resources`, `Models`, `Services`, `Config/permissions.php`, `Database/Migrations`. New modules start from `app/Modules/_Skeleton`.
+- Flow: `Routes/api.php` to a controller (usually `AdminOrionController`), then a Form Request, an Eloquent model, and a Json Resource. Extra logic lives in `Services/`.
+- Reference feature: students in `app/Modules/Core` (`Http/Controllers/StudentController.php`, `Http/Requests/StudentRequest.php`, `Http/Resources/StudentResource.php`, `Models/Student.php`, `Routes/api.php`). Copy that layout for new features.
+- Auth and permissions: `auth.any:sanctum_admin`, `check.active`, then `role.permission:module.entity.action` in `app/Modules/Administration/Http/Middleware`.
+- Responses: reads return `{ data }`. Deletes return `{ message }`. Errors from `bootstrap/app.php`: 401 `{ message }`, 422 `{ message, errors }`, other failures `{ message }`.
+- Names: PascalCase classes and module folders. Endpoints are plural under `/api` (`/api/students`, `/api/students/search`, `DELETE /api/students/{student}/delete`), keyed by uuid. JSON fields and DB columns are snake_case. PHP locals are camelCase.
+- Do not scan the whole repo. Read only files I mention or the reference feature.

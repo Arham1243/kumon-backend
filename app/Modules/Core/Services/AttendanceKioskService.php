@@ -41,6 +41,14 @@ class AttendanceKioskService
             return ['code' => 'invalid_student_id'];
         }
 
+        return $this->punchStudent($company, $student);
+    }
+
+    /**
+     * @return array{code: string, student_name?: string}
+     */
+    public function punchStudent(Company $company, Student $student): array
+    {
         $timezone = $this->resolveTimezone($company);
         $now = Carbon::now($timezone);
         $today = $now->format('Y-m-d');

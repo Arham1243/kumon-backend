@@ -6,6 +6,7 @@ use App\Modules\Administration\Http\Controllers\AdminOrionController;
 use App\Modules\Core\Http\Requests\StudentRequest;
 use App\Modules\Core\Http\Resources\StudentResource;
 use App\Modules\Core\Models\Student;
+use App\Modules\Core\Services\StudentCardService;
 use Illuminate\Database\Eloquent\Model;
 use Orion\Concerns\DisableAuthorization;
 use Orion\Http\Requests\Request as OrionRequest;
@@ -22,17 +23,17 @@ class StudentController extends AdminOrionController
 
     public function searchableBy(): array
     {
-        return ['student_id', 'name'];
+        return ['student_id', 'name', 'card_uid'];
     }
 
     public function sortableBy(): array
     {
-        return ['student_id', 'name', 'created_at'];
+        return ['student_id', 'name', 'card_uid', 'created_at'];
     }
 
     public function filterableBy(): array
     {
-        return ['student_id', 'name'];
+        return ['student_id', 'name', 'card_uid'];
     }
 
     protected function beforeSave(OrionRequest $request, Model $entity): void
@@ -45,6 +46,15 @@ class StudentController extends AdminOrionController
         if ($user && $user->company_id && empty($entity->company_id)) {
             $entity->company_id = $user->company_id;
         }
+    }
+
+    protected function afterSave(OrionRequest $request, Model $entity): void
+    {
+        if (! $entity instanceof Student) {
+            return;
+        }
+
+        app(StudentCardService::class)->syncAfterStudentSave($entity);
     }
 
     public function deleteStudent(Student $student)

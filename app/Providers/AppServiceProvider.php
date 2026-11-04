@@ -68,5 +68,14 @@ class AppServiceProvider extends ServiceProvider
                 );
             }
         );
+
+        $kioskCardPerMinute = (int) env('PUBLIC_KIOSK_CARD_PER_MINUTE', 30);
+
+        RateLimiter::for(
+            'public-kiosk-card',
+            static fn (Request $request): Limit => Limit::perMinute($kioskCardPerMinute)->by(
+                (string) $request->ip()
+            )
+        );
     }
 }

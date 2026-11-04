@@ -17,6 +17,7 @@ class StudentResource extends JsonResource
             'uuid' => $this->uuid,
             'student_id' => $this->student_id,
             'name' => $this->name,
+            'card_uid' => $this->card_uid,
             'created_at' => $this->created_at,
         ];
     }
