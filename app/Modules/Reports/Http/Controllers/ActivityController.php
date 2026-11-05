@@ -3,11 +3,11 @@
 namespace App\Modules\Reports\Http\Controllers;
 
 use App\Modules\Administration\Http\Controllers\AdminOrionController;
+use App\Modules\Administration\Models\Activity;
 use App\Modules\Reports\Http\Resources\ActivityResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Orion\Concerns\DisableAuthorization;
-use Spatie\Activitylog\Models\Activity;
 
 class ActivityController extends AdminOrionController
 {
