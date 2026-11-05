@@ -5,7 +5,7 @@ namespace App\Modules\Core\Http\Requests;
 use App\Modules\Core\Models\Student;
 use App\Modules\Core\Rules\CardUidRule;
 use App\Modules\Core\Rules\UniqueCompanyCardUid;
-use Illuminate\Validation\Rule;
+use App\Modules\Core\Support\CardUid;
 use Orion\Http\Requests\Request;
 
 class StudentRequest extends Request
@@ -13,8 +13,13 @@ class StudentRequest extends Request
     public function storeRules(): array
     {
         return [
-            'student_id' => $this->studentIdRules(),
             'name' => ['required', 'string', 'max:255'],
+            'parent_1_mobile' => ['nullable', 'string', 'max:32'],
+            'parent_2_mobile' => ['nullable', 'string', 'max:32'],
+            'start_date' => ['required', 'date', 'date_format:Y-m-d'],
+            'maths' => ['sometimes', 'boolean'],
+            'reading' => ['sometimes', 'boolean'],
+            'tuition_fee' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
             'card_uid' => $this->cardUidRules(),
         ];
     }
@@ -22,29 +27,37 @@ class StudentRequest extends Request
     public function updateRules(): array
     {
         return [
-            'student_id' => ['sometimes', ...$this->studentIdRules()],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'parent_1_mobile' => ['sometimes', 'nullable', 'string', 'max:32'],
+            'parent_2_mobile' => ['sometimes', 'nullable', 'string', 'max:32'],
+            'start_date' => ['sometimes', 'required', 'date', 'date_format:Y-m-d'],
+            'maths' => ['sometimes', 'boolean'],
+            'reading' => ['sometimes', 'boolean'],
+            'tuition_fee' => ['sometimes', 'nullable', 'numeric', 'min:0', 'decimal:0,2'],
             'card_uid' => ['sometimes', 'nullable', ...array_slice($this->cardUidRules(), 1)],
         ];
     }
 
-    /**
-     * @return list<mixed>
-     */
-    protected function studentIdRules(): array
+    protected function prepareForValidation(): void
     {
-        $companyId = $this->user()?->company_id;
+        $merge = [];
 
-        $unique = Rule::unique('students', 'student_id');
-        if ($companyId) {
-            $unique = $unique->where(fn ($query) => $query->where('company_id', $companyId));
+        if ($this->has('maths')) {
+            $merge['maths'] = filter_var($this->input('maths'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
         }
 
-        if ($this->route('student')) {
-            $unique = $unique->ignore($this->route('student'), 'uuid');
+        if ($this->has('reading')) {
+            $merge['reading'] = filter_var($this->input('reading'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
         }
 
-        return ['bail', 'required', 'integer', 'min:1', $unique];
+        if ($this->has('card_uid')) {
+            $normalized = CardUid::normalize($this->input('card_uid'));
+            $merge['card_uid'] = $normalized;
+        }
+
+        if ($merge !== []) {
+            $this->merge($merge);
+        }
     }
 
     /**
@@ -62,15 +75,6 @@ class StudentRequest extends Request
             'bail',
             new CardUidRule,
             new UniqueCompanyCardUid($ignore),
-        ];
-    }
-
-    public function commonMessages(): array
-    {
-        return [
-            'student_id.required' => 'Student ID is required.',
-            'student_id.integer' => 'Student ID must be an integer.',
-            'student_id.min' => 'Student ID must be at least 1.',
         ];
     }
 }

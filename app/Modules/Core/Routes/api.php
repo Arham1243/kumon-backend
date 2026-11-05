@@ -3,7 +3,6 @@
 use App\Modules\Core\Http\Controllers\AttendanceController;
 use App\Modules\Core\Http\Controllers\AttendanceExportController;
 use App\Modules\Core\Http\Controllers\PublicKioskController;
-use App\Modules\Core\Http\Controllers\StudentCardHistoriesController;
 use App\Modules\Core\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 use Orion\Facades\Orion;
@@ -18,10 +17,11 @@ Route::middleware(['throttle:public-kiosk-card'])->prefix('public/kiosk')->group
 });
 
 Route::middleware(['auth.any:sanctum_admin', 'check.active'])->group(function () {
+    Route::middleware(['role.permission:core.students.create'])->group(function () {
+        Route::get('students/next-id', [StudentController::class, 'nextStudentId']);
+    });
+
     Route::middleware(['role.permission:core.students.view'])->group(function () {
-        Orion::hasManyResource('students', 'card-histories', StudentCardHistoriesController::class, [
-            'only' => ['search'],
-        ])->withoutBatch();
         Orion::resource('students', StudentController::class, [
             'only' => ['index', 'search', 'show'],
         ])->withoutBatch();
@@ -37,6 +37,7 @@ Route::middleware(['auth.any:sanctum_admin', 'check.active'])->group(function ()
         Orion::resource('students', StudentController::class, [
             'only' => ['update'],
         ])->withoutBatch();
+        Route::post('students/{student}/change-status', [StudentController::class, 'changeStatus']);
     });
 
     Route::middleware(['role.permission:core.students.delete'])->group(function () {

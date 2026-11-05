@@ -26,6 +26,12 @@ class Student extends Model
     {
         return [
             'student_id' => 'integer',
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'status' => 'boolean',
+            'maths' => 'boolean',
+            'reading' => 'boolean',
+            'tuition_fee' => 'decimal:2',
         ];
     }
 
@@ -100,11 +106,6 @@ class Student extends Model
         return $this->hasMany(Attendance::class);
     }
 
-    public function cardHistories(): HasMany
-    {
-        return $this->hasMany(StudentCardHistory::class);
-    }
-
     public function dependencies(): array
     {
         return [
@@ -112,8 +113,34 @@ class Student extends Model
         ];
     }
 
+    /**
+     * Next business student number for the current center: highest student_id plus one.
+     * Pass $lock while already inside a transaction so concurrent creates cannot take the same number.
+     */
+    public static function nextStudentId(bool $lock = false): int
+    {
+        $query = static::query();
+
+        if ($lock) {
+            $max = $query
+                ->orderByDesc('student_id')
+                ->lockForUpdate()
+                ->value('student_id');
+        } else {
+            $max = $query->max('student_id');
+        }
+
+        return ((int) $max) + 1;
+    }
+
     protected static function booted()
     {
+        static::updating(function (Student $student) {
+            if ($student->isDirty('student_id')) {
+                $student->student_id = $student->getOriginal('student_id');
+            }
+        });
+
         static::deleting(function (Student $student) {
             $dependencies = $student->dependencies();
 

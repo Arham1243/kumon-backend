@@ -41,21 +41,6 @@ Around that, the app handles center settings, users, roles, and permissions.
 
 **Unique:** `(company_id, student_id, date)` — one attendance row per student per day.
 
-## `student_card_histories`
-
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `BIGINT UNSIGNED` PK | Auto-increment |
-| `uuid` | `CHAR(36)` | Unique |
-| `company_id` | `BIGINT UNSIGNED` | FK → `admin_companies.id`, cascade on delete |
-| `student_id` | `BIGINT UNSIGNED` | FK → `students.id`, cascade on delete |
-| `card_uid` | `VARCHAR(32)` | UID recorded for this student |
-| `assigned_at` | `TIMESTAMP` | When this UID was first saved for the student |
-| `created_at` | `TIMESTAMP` | Nullable |
-| `updated_at` | `TIMESTAMP` | Nullable |
-
-Append-only log: one row per distinct `(student_id, card_uid)`. Re-saving the same UID does not add another row. Index `(company_id, student_id)` and `(company_id, card_uid)`.
-
 ## How they connect
 
 ```text
@@ -64,8 +49,6 @@ admin_companies (id)
             student_id = the student's own number
             card_uid = current NFC UID (optional)
         └── attendances (student_id → students.id)
-                company_id → admin_companies.id
-        └── student_card_histories (student_id → students.id)
                 company_id → admin_companies.id
 ```
 
