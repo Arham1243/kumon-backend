@@ -26,22 +26,22 @@ class ScheduledJobSeeder extends Seeder
             [
                 'key' => 'remind-open-attendance',
                 'name' => 'Remind Open Attendance',
-                'description' => 'Notifies each company super admin when students checked in today without checkout.',
+                'description' => 'Sends the daily attendance summary email per company at each company\'s configured send time in that company\'s timezone.',
                 'handler' => RemindOpenAttendanceController::class,
                 'endpoint' => '/api/cron/remind-open-attendance',
                 'token_config_key' => 'services.attendance_cron.token',
-                'frequency' => '0 20 * * *',
-                'timezone' => 'America/New_York',
+                'frequency' => '* * * * *',
+                'timezone' => null,
             ],
             [
                 'key' => 'auto-close-open-attendance',
                 'name' => 'Auto-Close Open Attendance',
-                'description' => 'Sets checkout time for today’s open attendance rows at end of day.',
+                'description' => 'For each company, sets checkout on still-open attendance rows at 23:00 on that company\'s calendar date, in that company\'s timezone.',
                 'handler' => AutoCloseOpenAttendanceController::class,
                 'endpoint' => '/api/cron/auto-close-open-attendance',
                 'token_config_key' => 'services.attendance_cron.token',
-                'frequency' => '0 23 * * *',
-                'timezone' => 'America/New_York',
+                'frequency' => '* * * * *',
+                'timezone' => null,
             ],
         ];
 
