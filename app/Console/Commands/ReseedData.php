@@ -8,15 +8,13 @@ use App\Modules\Administration\Database\Seeders\RoleSeeder;
 use App\Modules\Reports\Database\Seeders\ScheduledJobSeeder;
 use Illuminate\Console\Command;
 
-class ReseedPermissions extends Command
+class ReseedData extends Command
 {
-    protected $signature = 'permissions:reseed
-                            {--only= : Comma-separated extra steps (always runs permissions + role_permissions first): email_templates, scheduled_jobs}';
+    protected $signature = 'reseed:data
+                            {--only= : Comma-separated steps (see valid steps when omitted)}
+                            {--all : Reseed every managed step}';
 
-    protected $description = 'Reseed permission definitions and role assignments; use --only to also reseed templates or jobs';
-
-    /** @var list<string> */
-    private const DEFAULT_STEPS = ['permissions', 'role_permissions'];
+    protected $description = 'Reseed reference/config data; use --only=<steps> or --all';
 
     /** @var array<string, callable(): void> */
     protected array $steps = [];
@@ -26,10 +24,12 @@ class ReseedPermissions extends Command
         parent::__construct();
 
         $this->steps = [
-            'permissions' => fn () => $this->seedPermissions(),
-            'role_permissions' => fn () => $this->seedRolePermissions(),
-            'email_templates' => fn () => $this->seedEmailTemplates(),
-            'scheduled_jobs' => fn () => $this->seedScheduledJobs(),
+            'permissions' => function (): void {
+                $this->call(PermissionSeeder::class);
+                $this->call(RoleSeeder::class);
+            },
+            'email_templates' => fn () => $this->call(EmailTemplateSeeder::class),
+            'scheduled_jobs' => fn () => $this->call(ScheduledJobSeeder::class),
         ];
     }
 
@@ -46,29 +46,9 @@ class ReseedPermissions extends Command
             $this->info("  • {$key}");
         }
 
-        $this->info('Permissions reseeded successfully.');
+        $this->info('Reseed completed.');
 
         return self::SUCCESS;
-    }
-
-    protected function seedPermissions(): void
-    {
-        $this->call(PermissionSeeder::class);
-    }
-
-    protected function seedRolePermissions(): void
-    {
-        $this->call(RoleSeeder::class);
-    }
-
-    protected function seedEmailTemplates(): void
-    {
-        $this->call(EmailTemplateSeeder::class);
-    }
-
-    protected function seedScheduledJobs(): void
-    {
-        $this->call(ScheduledJobSeeder::class);
     }
 
     /**
@@ -76,16 +56,25 @@ class ReseedPermissions extends Command
      */
     protected function resolveSteps(): ?array
     {
+        if ($this->option('all')) {
+            return $this->stepsForKeys(array_keys($this->steps));
+        }
+
         $only = trim((string) $this->option('only'));
 
         if ($only === '') {
-            return $this->stepsForKeys(self::DEFAULT_STEPS);
+            $this->error('Specify --only=<steps> or --all');
+            $this->line('Valid steps: '.implode(', ', array_keys($this->steps)));
+            $this->line('Example: php artisan reseed:data --only=permissions,email_templates');
+            $this->line('Example: php artisan reseed:data --all');
+
+            return null;
         }
 
-        $keys = array_filter(array_map(
-            fn (string $key) => strtolower(trim(str_replace('-', '_', $key))),
+        $keys = array_values(array_unique(array_filter(array_map(
+            fn (string $key) => $this->normalizeStepKey($key),
             explode(',', $only)
-        ));
+        ))));
 
         $selected = [];
         $invalid = [];
@@ -100,26 +89,23 @@ class ReseedPermissions extends Command
 
         if ($invalid !== []) {
             $this->error('Unknown step(s): '.implode(', ', $invalid));
-            $this->line('Valid options: '.implode(', ', array_keys($this->steps)));
+            $this->line('Valid steps: '.implode(', ', array_keys($this->steps)));
 
             return null;
         }
 
         if ($selected === []) {
-            $this->error('Provide at least one step via --only=');
+            $this->error('No valid steps in --only=');
 
             return null;
         }
 
-        $mergedKeys = array_values(array_unique([
-            ...self::DEFAULT_STEPS,
-            ...array_keys($selected),
-        ]));
-
-        return $this->stepsForKeys($mergedKeys);
+        return $this->stepsForKeys(array_keys($selected));
     }
 
     /**
+     * Preserve the order listed in --only (after de-duplication).
+     *
      * @param  list<string>  $keys
      * @return array<string, callable(): void>
      */
@@ -134,5 +120,16 @@ class ReseedPermissions extends Command
         }
 
         return $selected;
+    }
+
+    protected function normalizeStepKey(string $key): string
+    {
+        $normalized = strtolower(trim(str_replace('-', '_', $key)));
+
+        if ($normalized === 'role_permissions') {
+            return 'permissions';
+        }
+
+        return $normalized;
     }
 }

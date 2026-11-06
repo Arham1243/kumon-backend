@@ -32,14 +32,14 @@ class AdminEmailTemplate extends Model
     public static function defaultCtaLabelForSlug(string $slug): ?string
     {
         return match ($slug) {
-            self::SLUG_RESET_PASSWORD => 'Password Reset',
+            self::SLUG_RESET_PASSWORD => 'Reset Password',
             self::SLUG_SETUP_PASSWORD => 'Get Started',
             self::SLUG_OPEN_ATTENDANCE_REMINDER => 'Open Attendance',
             default => null,
         };
     }
 
-    public const DEFAULT_COPYRIGHT_LINE = '© {{year}} Kumon. All rights reserved.';
+    public const DEFAULT_COPYRIGHT_LINE = '© {{year}} Intelygic. All rights reserved.';
 
     public static function defaultSubjectTemplateForSlug(string $slug): string
     {
@@ -59,11 +59,18 @@ class AdminEmailTemplate extends Model
     {
         return [
             'from' => 'support',
-            'display_name' => (string) config('mail.from.name', 'Kumon'),
+            'display_name' => 'Kumon',
             'reply_to_email' => trim((string) config('mail.reply_to.address', 'noreply@mail.servicore.io')),
             'reply_to_name' => (string) config('mail.reply_to.name', 'No Reply'),
             'bcc_recipients' => null,
         ];
+    }
+
+    public static function passwordResetLinkExpirationMinutes(): int
+    {
+        $minutes = (int) config('auth.passwords.admins.expire', 30);
+
+        return $minutes > 0 ? $minutes : 30;
     }
 
     protected $table = 'admin_email_templates';

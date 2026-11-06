@@ -3,6 +3,7 @@
 namespace App\Modules\Administration\Services;
 
 use App\Modules\Administration\Models\Admin\AdminEmailTemplate;
+use App\Modules\Administration\Models\UserLoginOtp;
 use App\Modules\Core\Services\OpenAttendanceTableHtml;
 
 /**
@@ -73,7 +74,7 @@ class AdminEmailTemplateRenderer
         return [
             'name' => 'User',
             'otp_code' => '123456',
-            'expires_in_minutes' => '10',
+            'expires_in_minutes' => (string) UserLoginOtp::expirationMinutes(),
             'verify_link' => '',
             'year' => now()->format('Y'),
         ];
@@ -84,7 +85,11 @@ class AdminEmailTemplateRenderer
      */
     public function buildAuthEmail(string $slug, array $fieldOverrides = [], array $placeholderOverrides = []): array
     {
-        $placeholders = array_merge($this->authPreviewPlaceholders(), $placeholderOverrides);
+        $basePlaceholders = $this->authPreviewPlaceholders();
+        if ($slug === AdminEmailTemplate::SLUG_RESET_PASSWORD && ! array_key_exists('expires_in_minutes', $placeholderOverrides)) {
+            $basePlaceholders['expires_in_minutes'] = (string) AdminEmailTemplate::passwordResetLinkExpirationMinutes();
+        }
+        $placeholders = array_merge($basePlaceholders, $placeholderOverrides);
         $row = $this->activeRow($slug);
 
         $subjectTemplate = null;
@@ -100,10 +105,30 @@ class AdminEmailTemplateRenderer
             $fieldOverrides['intro_html'] ?? $row?->intro_html,
             $placeholders
         );
-        $body = $this->interpolate(
-            $fieldOverrides['body_html'] ?? $row?->body_html,
-            $placeholders
-        );
+        $bodyTemplate = $fieldOverrides['body_html'] ?? $row?->body_html;
+        $bodyTemplate = $bodyTemplate ?? '';
+
+        $bodyHtml = null;
+        $otpBodyBeforeHtml = null;
+        $otpBodyAfterHtml = null;
+        $ctaFooterHtml = null;
+
+        if ($slug === AdminEmailTemplate::SLUG_LOGIN_OTP && str_contains($bodyTemplate, '{{otp_code}}')) {
+            $segments = explode('{{otp_code}}', $bodyTemplate, 2);
+            $beforeRaw = $segments[0] ?? '';
+            $afterRaw = $segments[1] ?? '';
+            $otpBodyBeforeHtml = $this->interpolate($beforeRaw, $placeholders);
+            $otpBodyAfterHtml = $this->interpolate($afterRaw, $placeholders);
+        } elseif ($slug === AdminEmailTemplate::SLUG_RESET_PASSWORD && str_contains($bodyTemplate, '{{cta_button}}')) {
+            $segments = explode('{{cta_button}}', $bodyTemplate, 2);
+            $beforeRaw = $segments[0] ?? '';
+            $afterRaw = $segments[1] ?? '';
+            $otpBodyBeforeHtml = $this->interpolate($beforeRaw, $placeholders);
+            $ctaFooterHtml = $this->interpolate($afterRaw, $placeholders);
+        } else {
+            $bodyHtml = $this->interpolate($bodyTemplate, $placeholders);
+        }
+
         $footer = $this->interpolate(
             $fieldOverrides['footer_html'] ?? $row?->footer_html ?? AdminEmailTemplate::DEFAULT_COPYRIGHT_LINE,
             $placeholders
@@ -135,7 +160,10 @@ class AdminEmailTemplateRenderer
             'greetingName' => '',
             'htmlTitle' => $subject,
             'introHtml' => $intro,
-            'bodyHtml' => filled($body) ? $body : null,
+            'bodyHtml' => filled($bodyHtml) ? $bodyHtml : null,
+            'otpBodyBeforeHtml' => filled($otpBodyBeforeHtml ?? '') ? $otpBodyBeforeHtml : null,
+            'otpBodyAfterHtml' => filled($otpBodyAfterHtml ?? '') ? $otpBodyAfterHtml : null,
+            'ctaFooterHtml' => filled($ctaFooterHtml ?? '') ? $ctaFooterHtml : null,
             'rows' => [],
             'ticket' => null,
             'ctaUrl' => $ctaUrl,
@@ -192,6 +220,9 @@ class AdminEmailTemplateRenderer
             'htmlTitle' => $subject,
             'introHtml' => $intro,
             'bodyHtml' => filled($bodyWithTable) ? $bodyWithTable : null,
+            'otpBodyBeforeHtml' => null,
+            'otpBodyAfterHtml' => null,
+            'ctaFooterHtml' => null,
             'rows' => [],
             'ticket' => null,
             'ctaUrl' => $ctaUrl,

@@ -28,7 +28,7 @@ YourModule/
 After changing permissions, run:
 
 ```bash
-php artisan permissions:reseed
+php artisan reseed:data --only=permissions
 # or migrate + db:seed as your team normally does
 ```
 

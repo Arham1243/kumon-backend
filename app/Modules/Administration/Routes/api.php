@@ -17,6 +17,7 @@ Route::middleware(['auth.any:sanctum_admin', 'check.active'])->group(function ()
     Route::get('/auth/table-preferences', [AuthController::class, 'tablePreferences']);
     Route::put('/auth/table-preferences', [AuthController::class, 'updateTablePreferences']);
     Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/auth/password', [AuthController::class, 'changePassword']);
 });
 
 Route::prefix('auth')->group(function () {

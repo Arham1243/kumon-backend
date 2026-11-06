@@ -53,6 +53,11 @@ class AdminEmailTemplateController extends AdminOrionController
 
     protected function performUpdate(Request $request, Model $entity, array $attributes): void
     {
+        /** @var AdminEmailTemplate $entity */
+        if ($entity->is_system) {
+            throw new HttpException(403, 'System email templates cannot be edited.');
+        }
+
         $data = $this->validatePayload($request, $entity);
 
         $entity->fill($data);
@@ -66,6 +71,10 @@ class AdminEmailTemplateController extends AdminOrionController
 
     public function changeStatus(Request $request, AdminEmailTemplate $adminEmailTemplate): JsonResponse
     {
+        if ($adminEmailTemplate->is_system) {
+            throw new HttpException(403, 'System email templates cannot be activated or deactivated.');
+        }
+
         $validated = $request->validate([
             'status' => ['required', 'boolean'],
         ]);

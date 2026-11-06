@@ -7,6 +7,7 @@ use App\Modules\Administration\Http\Resources\AdminLoginResource;
 use App\Modules\Administration\Models\User;
 use App\Modules\Administration\Models\Admin\AdminEmailTemplate;
 use App\Modules\Administration\Services\AdminAuthMailer;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -52,6 +53,7 @@ class PasswordResetController extends Controller
             [
                 'name' => $user->name ?: $email,
                 'verify_link' => $verifyLink,
+                'expires_in_minutes' => (string) AdminEmailTemplate::passwordResetLinkExpirationMinutes(),
             ],
             $user->id
         );
@@ -129,6 +131,15 @@ class PasswordResetController extends Controller
             ], 422);
         }
 
+        if ($this->passwordResetTokenExpired($record)) {
+            DB::table('admin_password_reset_tokens')->where('email', $record->email)->delete();
+
+            return response()->json([
+                'message' => 'Session expired',
+                'errors' => ['email' => ['Session expired']],
+            ], 422);
+        }
+
         $contact = User::where('email', $record->email)->first();
 
         if (! $contact) {
@@ -141,6 +152,18 @@ class PasswordResetController extends Controller
         DB::table('admin_password_reset_tokens')->where('email', $record->email)->delete();
 
         return response()->json(['status' => true, 'message' => 'Password reset successful.']);
+    }
+
+    private function passwordResetTokenExpired(object $record): bool
+    {
+        if (empty($record->created_at)) {
+            return true;
+        }
+
+        $minutes = AdminEmailTemplate::passwordResetLinkExpirationMinutes();
+        $createdAt = Carbon::parse($record->created_at);
+
+        return $createdAt->addMinutes($minutes)->isPast();
     }
 
 }

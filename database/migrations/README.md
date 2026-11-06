@@ -43,7 +43,7 @@ Do not reintroduce rename/data-fix migration chains for tables already defined t
 
 ```bash
 php artisan migrate:fresh --seed
-php artisan permissions:reseed
+php artisan reseed:data --only=permissions
 ```
 
 Existing databases that already ran older migration files are not upgraded by removing those files; use a fresh database or `migrate:fresh` in local/dev only.

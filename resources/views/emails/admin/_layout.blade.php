@@ -15,26 +15,41 @@
      * @var int|null $companyId
      * @var string|null $copyrightLine Single-line copyright (plain text; only {{year}} supported in DB template)
      * @var string|null $otpCode Centered OTP block (admin auth emails)
+     * @var string|null $otpBodyBeforeHtml Body fragment before OTP (login-otp split at {{otp_code}})
+     * @var string|null $otpBodyAfterHtml Body fragment after OTP (login-otp split at {{otp_code}})
+     * @var string|null $ctaFooterHtml Body fragment after CTA button (password-reset split at {{cta_button}})
      * @var string $ctaAlign left|center ΓÇö CTA row alignment (auth reset/setup uses center)
      */
-    $headline = $headline ?? 'Ticket update';
-    $greetingName = $greetingName ?? 'Hi there';
+    $headline = $headline ?? null;
+    $greetingName = $greetingName ?? null;
     $htmlTitle = $htmlTitle ?? null;
     $rows = $rows ?? [];
     $ctaLabel = $ctaLabel ?? 'View Ticket';
     $companyId = $companyId ?? optional($ticket ?? null)->central_company_id;
     $copyrightLine = $copyrightLine ?? $footerHtml ?? null;
     $otpCode = $otpCode ?? null;
+    $otpBodyBeforeHtml = $otpBodyBeforeHtml ?? null;
+    $otpBodyAfterHtml = $otpBodyAfterHtml ?? null;
+    $ctaFooterHtml = $ctaFooterHtml ?? null;
     $ctaAlign = $ctaAlign ?? 'left';
     $brandPrimary = config('brand.primary', '#14377d');
     $ctaButtonStyle = 'display:inline-block; padding:10px 20px; font-size:14px; font-weight:600; color:#ffffff; background-color:'.$brandPrimary.'; border-radius:6px; text-decoration:none;';
+
+    /** Avoid a gap above the first body block when intro/rows are empty (e.g. OTP with no greeting). */
+    $introHtmlRaw = $introHtml ?? '';
+    $introHasVisibleText = trim(strip_tags((string) $introHtmlRaw, '<img>')) !== '';
+    $hasUpperContent = filled($headline)
+        || filled($greetingName)
+        || $introHasVisibleText
+        || ! empty($rows);
+    $mainBodyMarginTop = $hasUpperContent ? '24px' : '0';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $htmlTitle ?? (filled($headline) ? $headline : (optional($ticket)->subject ?: 'Ticket update')) }} - Kumon</title>
+    <title>{{ $htmlTitle ?? (filled($headline) ? $headline : (optional($ticket)->subject ?: 'Notification')) }} - Kumon</title>
 </head>
 <body style="margin:0; padding:24px 12px; background-color:#f4f4f5; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
     <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
@@ -55,9 +70,9 @@
                                 </h1>
                             @endif
 
-                            @if (! empty($introHtml))
+                            @if ($introHasVisibleText)
                                 <div style="font-size:15px; line-height:1.6; color:#3f3f46;">
-                                    {!! $introHtml !!}
+                                    {!! $introHtmlRaw !!}
                                 </div>
                             @endif
 
@@ -84,8 +99,14 @@
                                 </table>
                             @endif
 
+                            @if (! empty($otpBodyBeforeHtml))
+                                <div style="margin-top:{{ $mainBodyMarginTop }}; font-size:15px; line-height:1.6; color:#3f3f46;">
+                                    {!! $otpBodyBeforeHtml !!}
+                                </div>
+                            @endif
+
                             @if (! empty($bodyHtml))
-                                <div style="margin-top:24px; font-size:15px; line-height:1.6; color:#3f3f46;">
+                                <div style="margin-top:{{ $mainBodyMarginTop }}; font-size:15px; line-height:1.6; color:#3f3f46;">
                                     {!! $bodyHtml !!}
                                 </div>
                             @endif
@@ -102,6 +123,12 @@
                                 </table>
                             @endif
 
+                            @if (! empty($otpBodyAfterHtml))
+                                <div style="margin-top:16px; font-size:15px; line-height:1.6; color:#3f3f46;">
+                                    {!! $otpBodyAfterHtml !!}
+                                </div>
+                            @endif
+
                             @if (! empty($ctaUrl))
                                 <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top:28px;">
                                     <tr>
@@ -112,6 +139,12 @@
                                         </td>
                                     </tr>
                                 </table>
+                            @endif
+
+                            @if (! empty($ctaFooterHtml))
+                                <div style="margin-top:16px; font-size:15px; line-height:1.6; color:#3f3f46;">
+                                    {!! $ctaFooterHtml !!}
+                                </div>
                             @endif
                         </td>
                     </tr>

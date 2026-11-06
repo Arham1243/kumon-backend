@@ -3,6 +3,7 @@
 namespace App\Modules\Administration\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Administration\Http\Requests\Auth\ChangePasswordRequest;
 use App\Modules\Administration\Http\Requests\Auth\LoginRequest;
 use App\Modules\Administration\Http\Resources\AdminLoginResource;
 use App\Modules\Administration\Http\Resources\Auth\AdminProfileResource;
@@ -15,8 +16,10 @@ use App\Support\AccountStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -200,6 +203,26 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Profile updated successfully.',
             'data' => new AdminProfileResource($user->fresh(['role'])),
+        ]);
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! Hash::check($request->input('current_password'), $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['The current password is incorrect.'],
+            ]);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->validated('password')),
+        ]);
+
+        return response()->json([
+            'message' => 'Password changed successfully.',
         ]);
     }
 
