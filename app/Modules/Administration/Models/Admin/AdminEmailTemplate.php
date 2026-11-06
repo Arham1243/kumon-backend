@@ -81,6 +81,7 @@ class AdminEmailTemplate extends Model
         'status' => 'boolean',
         'is_system' => 'boolean',
         'bcc_recipients' => 'array',
+        'to_recipients' => 'array',
         'detail_row_keys' => 'array',
         'detail_row_labels' => 'array',
     ];

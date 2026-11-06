@@ -45,4 +45,26 @@ class OpenAttendanceQuery
             ->orderBy('check_in_time')
             ->get();
     }
+
+    public function countCheckInsForCompanyOnDate(Company $company, ?string $date = null): int
+    {
+        $date = $date ?? $this->companyLocalToday($company);
+
+        return (int) Attendance::query()
+            ->where('company_id', $company->id)
+            ->whereDate('date', $date)
+            ->whereNotNull('check_in_time')
+            ->count();
+    }
+
+    public function countCheckOutsForCompanyOnDate(Company $company, ?string $date = null): int
+    {
+        $date = $date ?? $this->companyLocalToday($company);
+
+        return (int) Attendance::query()
+            ->where('company_id', $company->id)
+            ->whereDate('date', $date)
+            ->whereNotNull('check_out_time')
+            ->count();
+    }
 }

@@ -19,7 +19,7 @@ class CompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
             'street_address_1' => ['nullable', 'string', 'max:255'],
             'street_address_2' => ['nullable', 'string', 'max:255'],
             'street_address_3' => ['nullable', 'string', 'max:255'],
@@ -29,16 +29,19 @@ class CompanyRequest extends FormRequest
             'country' => ['nullable', 'string', 'max:120'],
             'logo' => ['nullable', 'string'],
             'timezone' => [
+                'sometimes',
                 'required',
                 'string',
                 'max:100',
                 Rule::in(CompanyTimezone::allowedValues()),
             ],
             'date_format' => [
+                'sometimes',
                 'required',
                 'string',
                 Rule::in(['mm/dd/yy', 'dd/mm/yy', 'yy-mm-dd']),
             ],
+            'daily_summary_report_send_time' => ['sometimes', 'required', 'date_format:H:i'],
         ];
     }
 }

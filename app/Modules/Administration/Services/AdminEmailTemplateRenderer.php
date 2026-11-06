@@ -4,6 +4,7 @@ namespace App\Modules\Administration\Services;
 
 use App\Modules\Administration\Models\Admin\AdminEmailTemplate;
 use App\Modules\Administration\Models\UserLoginOtp;
+use App\Modules\Core\Services\OpenAttendanceSummaryCardsHtml;
 use App\Modules\Core\Services\OpenAttendanceTableHtml;
 
 /**
@@ -187,8 +188,12 @@ class AdminEmailTemplateRenderer
     ): array {
         $slug = AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER;
         $placeholders = array_merge([
-            'name' => 'Super Admin',
             'year' => now()->format('Y'),
+            'check_in_count' => '12',
+            'check_out_count' => '10',
+            'not_checked_out_count' => '2',
+            'report_date' => '10/09/2026',
+            'attendance_summary_cards' => app(OpenAttendanceSummaryCardsHtml::class)->render(12, 10, 2),
             'attendance_table' => app(OpenAttendanceTableHtml::class)->renderPreviewSample(),
         ], $placeholderOverrides);
 
@@ -211,9 +216,6 @@ class AdminEmailTemplateRenderer
 
         $subject = $this->normalizeMailSubject($this->interpolate($subjectTemplate, $placeholders));
 
-        $frontendBase = rtrim((string) config('app.frontend_url', 'http://localhost:3000'), '/');
-        $ctaUrl = $frontendBase.'/attendance';
-
         $html = view('emails.admin._layout', [
             'headline' => '',
             'greetingName' => '',
@@ -225,8 +227,8 @@ class AdminEmailTemplateRenderer
             'ctaFooterHtml' => null,
             'rows' => [],
             'ticket' => null,
-            'ctaUrl' => $ctaUrl,
-            'ctaLabel' => AdminEmailTemplate::defaultCtaLabelForSlug($slug) ?? 'Open Attendance',
+            'ctaUrl' => null,
+            'ctaLabel' => null,
             'ctaAlign' => 'center',
             'companyId' => $row?->company_id,
             'copyrightLine' => $footer,

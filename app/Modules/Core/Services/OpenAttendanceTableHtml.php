@@ -19,7 +19,7 @@ class OpenAttendanceTableHtml
         $rows = $attendances instanceof Collection ? $attendances : collect($attendances);
 
         if ($rows->isEmpty()) {
-            return '';
+            return '<p style="margin:0;font-size:15px;line-height:1.6;color:#71717a;">No students have not checked out today.</p>';
         }
 
         $body = '';
@@ -27,31 +27,28 @@ class OpenAttendanceTableHtml
             $student = $attendance->student;
             $studentCode = e($student?->student_id ?? '-');
             $studentName = e($student?->name ?? '-');
-            $date = e(format_date($attendance->date, null, $company));
             $checkIn = e($this->formatCheckIn($attendance->check_in_time));
 
-            $body .= '<tr style="border-bottom:1px solid #e0e0e0;">'
-                .'<td align="left" style="padding:10px;">'.$studentCode.'</td>'
-                .'<td align="left" style="padding:10px;">'.$studentName.'</td>'
-                .'<td align="left" style="padding:10px;">'.$date.'</td>'
-                .'<td align="left" style="padding:10px;">'.$checkIn.'</td>'
+            $body .= '<tr style="background-color:#ffffff;border-bottom:1px solid #e4e4e7;">'
+                .'<td align="left" style="padding:12px 14px;font-size:15px;color:#18181b;">'.$studentCode.'</td>'
+                .'<td align="left" style="padding:12px 14px;font-size:15px;color:#18181b;">'.$studentName.'</td>'
+                .'<td align="left" style="padding:12px 14px;font-size:15px;color:#18181b;">'.$checkIn.'</td>'
                 .'</tr>';
         }
 
-        return '<table border="0" cellpadding="10" cellspacing="0" width="100%"'
-            .' style="border-collapse:collapse;font-family:sans-serif;font-size:15px;color:#000000;background-color:#f9f9f9;margin-top:16px;">'
-            .'<tr style="background-color:#e0e0e0;color:#000000;">'
-            .'<th align="left" style="padding:12px;font-weight:bold;">Student ID</th>'
-            .'<th align="left" style="padding:12px;font-weight:bold;">Name</th>'
-            .'<th align="left" style="padding:12px;font-weight:bold;">Date</th>'
-            .'<th align="left" style="padding:12px;font-weight:bold;">Check In</th>'
+        return '<table border="0" cellpadding="0" cellspacing="0" width="100%"'
+            .' style="border-collapse:collapse;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,\'Helvetica Neue\',Arial,sans-serif;font-size:15px;color:#18181b;border:1px solid #e4e4e7;border-radius:8px;overflow:hidden;">'
+            .'<tr style="background-color:#f4f4f5;">'
+            .'<th align="left" style="padding:12px 14px;font-size:14px;font-weight:700;color:#09090b;border-bottom:1px solid #e4e4e7;">Student ID</th>'
+            .'<th align="left" style="padding:12px 14px;font-size:14px;font-weight:700;color:#09090b;border-bottom:1px solid #e4e4e7;">Name</th>'
+            .'<th align="left" style="padding:12px 14px;font-size:14px;font-weight:700;color:#09090b;border-bottom:1px solid #e4e4e7;">Check In</th>'
             .'</tr>'
             .$body
             .'</table>';
     }
 
     /**
-     * @return list<array{student_id: string, name: string, date: string, check_in: string}>
+     * @return list<array{student_id: string, name: string, check_in: string}>
      */
     public function previewSampleRows(): array
     {
@@ -59,13 +56,11 @@ class OpenAttendanceTableHtml
             [
                 'student_id' => '12345678',
                 'name' => 'Sample Student',
-                'date' => '10/09/2026',
                 'check_in' => '08:00 AM',
             ],
             [
                 'student_id' => '87654321',
                 'name' => 'Another Student',
-                'date' => '10/09/2026',
                 'check_in' => '09:30 AM',
             ],
         ];
@@ -75,21 +70,19 @@ class OpenAttendanceTableHtml
     {
         $body = '';
         foreach ($this->previewSampleRows() as $row) {
-            $body .= '<tr style="border-bottom:1px solid #e0e0e0;">'
-                .'<td align="left" style="padding:10px;">'.e($row['student_id']).'</td>'
-                .'<td align="left" style="padding:10px;">'.e($row['name']).'</td>'
-                .'<td align="left" style="padding:10px;">'.e($row['date']).'</td>'
-                .'<td align="left" style="padding:10px;">'.e($row['check_in']).'</td>'
+            $body .= '<tr style="background-color:#ffffff;border-bottom:1px solid #e4e4e7;">'
+                .'<td align="left" style="padding:12px 14px;font-size:15px;color:#18181b;">'.e($row['student_id']).'</td>'
+                .'<td align="left" style="padding:12px 14px;font-size:15px;color:#18181b;">'.e($row['name']).'</td>'
+                .'<td align="left" style="padding:12px 14px;font-size:15px;color:#18181b;">'.e($row['check_in']).'</td>'
                 .'</tr>';
         }
 
-        return '<table border="0" cellpadding="10" cellspacing="0" width="100%"'
-            .' style="border-collapse:collapse;font-family:sans-serif;font-size:15px;color:#000000;background-color:#f9f9f9;margin-top:16px;">'
-            .'<tr style="background-color:#e0e0e0;color:#000000;">'
-            .'<th align="left" style="padding:12px;font-weight:bold;">Student ID</th>'
-            .'<th align="left" style="padding:12px;font-weight:bold;">Name</th>'
-            .'<th align="left" style="padding:12px;font-weight:bold;">Date</th>'
-            .'<th align="left" style="padding:12px;font-weight:bold;">Check In</th>'
+        return '<table border="0" cellpadding="0" cellspacing="0" width="100%"'
+            .' style="border-collapse:collapse;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,\'Helvetica Neue\',Arial,sans-serif;font-size:15px;color:#18181b;border:1px solid #e4e4e7;border-radius:8px;overflow:hidden;">'
+            .'<tr style="background-color:#f4f4f5;">'
+            .'<th align="left" style="padding:12px 14px;font-size:14px;font-weight:700;color:#09090b;border-bottom:1px solid #e4e4e7;">Student ID</th>'
+            .'<th align="left" style="padding:12px 14px;font-size:14px;font-weight:700;color:#09090b;border-bottom:1px solid #e4e4e7;">Name</th>'
+            .'<th align="left" style="padding:12px 14px;font-size:14px;font-weight:700;color:#09090b;border-bottom:1px solid #e4e4e7;">Check In</th>'
             .'</tr>'
             .$body
             .'</table>';

@@ -15,6 +15,7 @@ class CompanySeeder extends Seeder
             [
                 'timezone' => CompanyTimezone::defaultValue(),
                 'date_format' => 'mm/dd/yy',
+                'daily_summary_report_send_time' => '20:00',
             ]
         );
     }

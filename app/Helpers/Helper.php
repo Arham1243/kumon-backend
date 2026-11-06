@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CompanyTimezone;
 use App\Modules\Core\Models\Company;
 
 if (! function_exists('email_template_is_date_key')) {
@@ -136,12 +137,16 @@ if (! function_exists('format_date')) {
                 $tzCompany = $user->company;
             }
         }
-        if ($tzCompany && filled($tzCompany->timezone)) {
-            try {
-                new \DateTimeZone((string) $tzCompany->timezone);
-                $displayTz = (string) $tzCompany->timezone;
-            } catch (\Throwable) {
-                // keep app timezone
+        if ($tzCompany) {
+            if (filled($tzCompany->timezone)) {
+                try {
+                    new \DateTimeZone((string) $tzCompany->timezone);
+                    $displayTz = (string) $tzCompany->timezone;
+                } catch (\Throwable) {
+                    $displayTz = CompanyTimezone::defaultValue();
+                }
+            } else {
+                $displayTz = CompanyTimezone::defaultValue();
             }
         }
 
@@ -186,6 +191,93 @@ if (! function_exists('get_company_date_format')) {
         } catch (\Exception $e) {
             return php_date_format_for_company_date_setting(null);
         }
+    }
+}
+
+if (! function_exists('resolve_company_timezone_string')) {
+    /**
+     * IANA timezone for the given company, or the authenticated user's company, with a safe default.
+     */
+    function resolve_company_timezone_string(?Company $company = null): string
+    {
+        $candidate = null;
+        if ($company instanceof Company && filled($company->timezone)) {
+            $candidate = (string) $company->timezone;
+        } else {
+            $user = auth()->user();
+            if ($user && method_exists($user, 'company')) {
+                $user->loadMissing('company');
+                if ($user->company && filled($user->company->timezone)) {
+                    $candidate = (string) $user->company->timezone;
+                }
+            }
+        }
+
+        if ($candidate !== null && $candidate !== '') {
+            try {
+                new \DateTimeZone($candidate);
+
+                return $candidate;
+            } catch (\Throwable) {
+                // fall through to default
+            }
+        }
+
+        return CompanyTimezone::defaultValue();
+    }
+}
+
+if (! function_exists('apply_created_at_range_in_company_tz')) {
+    /**
+     * Filter an instant column by calendar days in the company timezone (inclusive start and end dates).
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $column  SQL column (may be qualified)
+     */
+    function apply_created_at_range_in_company_tz($query, string $column, mixed $from, mixed $to, ?Company $company = null): void
+    {
+        $tz = resolve_company_timezone_string($company);
+
+        if (is_string($from)) {
+            $s = trim($from);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
+                $start = \Carbon\Carbon::createFromFormat('!Y-m-d', $s, $tz)->startOfDay()->utc();
+                $query->where($column, '>=', $start);
+            }
+        }
+
+        if (is_string($to)) {
+            $s = trim($to);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
+                $endExclusive = \Carbon\Carbon::createFromFormat('!Y-m-d', $s, $tz)->addDay()->startOfDay()->utc();
+                $query->where($column, '<', $endExclusive);
+            }
+        }
+    }
+}
+
+if (! function_exists('format_date_time')) {
+    /**
+     * Full datetime string in company (or given company) timezone, using company date_format plus time.
+     *
+     * @param  mixed  $date
+     */
+    function format_date_time($date, ?string $format = null, ?Company $company = null): string
+    {
+        if ($date === null || $date === '') {
+            return '';
+        }
+
+        if ($format === null || $format === '') {
+            if ($company instanceof Company) {
+                $datePart = php_date_format_for_company_date_setting($company->date_format);
+            } else {
+                $datePart = get_company_date_format();
+            }
+            $format = $datePart.' h:i A';
+        }
+
+        return format_date($date, $format, $company);
     }
 }
 

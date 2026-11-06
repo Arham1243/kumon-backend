@@ -26,6 +26,7 @@ class CompanyResource extends JsonResource
             'logo_url' => $this->logo,
             'timezone' => $this->timezone,
             'date_format' => $this->date_format,
+            'daily_summary_report_send_time' => $this->daily_summary_report_send_time,
         ];
     }
 }

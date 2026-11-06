@@ -61,6 +61,15 @@ class AdminEmailTemplateController extends AdminOrionController
         $data = $this->validatePayload($request, $entity);
 
         $entity->fill($data);
+        if ($entity->slug === AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER) {
+            $defaults = AdminEmailTemplate::defaultMailEnvelope();
+            foreach (['from', 'display_name', 'reply_to_email', 'reply_to_name'] as $key) {
+                $value = $entity->getAttribute($key);
+                if ($value === null || $value === '') {
+                    $entity->setAttribute($key, $defaults[$key] ?? null);
+                }
+            }
+        }
         $entity->save();
     }
 
@@ -78,6 +87,19 @@ class AdminEmailTemplateController extends AdminOrionController
         $validated = $request->validate([
             'status' => ['required', 'boolean'],
         ]);
+
+        if ($validated['status'] === true
+            && $adminEmailTemplate->slug === AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER) {
+            $recipients = $adminEmailTemplate->to_recipients;
+            $recipients = is_array($recipients)
+                ? array_values(array_filter(array_map('trim', $recipients), static fn ($e) => $e !== ''))
+                : [];
+            if ($recipients === []) {
+                throw ValidationException::withMessages([
+                    'status' => ['Add at least one TO recipient before activating this template.'],
+                ]);
+            }
+        }
 
         $adminEmailTemplate->update(['status' => $validated['status']]);
 
@@ -233,20 +255,41 @@ class AdminEmailTemplateController extends AdminOrionController
         $slug = (string) $entity->slug;
         $catalog = AdminEmailTemplate::detailRowCatalogForSlug($slug);
 
-        $rules = [
-            'name' => ['sometimes', 'string', 'max:255'],
-            'from' => ['required', 'string', 'not_regex:/[@\s]/'],
-            'display_name' => ['required', 'string', 'not_regex:/@/'],
-            'reply_to_email' => ['required', 'string', 'email'],
-            'reply_to_name' => ['required', 'string', 'not_regex:/@/'],
-            'bcc_recipients' => ['nullable', 'array'],
-            'bcc_recipients.*' => ['email'],
-            'subject_template' => ['nullable', 'string', 'max:255'],
-            'intro_html' => ['nullable', 'string'],
-            'body_html' => ['nullable', 'string'],
-            'footer_html' => ['nullable', 'string', 'max:500'],
-            'status' => ['sometimes', 'boolean'],
-        ];
+        if ($slug === AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER) {
+            $rules = [
+                'name' => ['sometimes', 'nullable', 'string', 'max:255'],
+                'from' => ['sometimes', 'nullable', 'string', 'not_regex:/[@\s]/'],
+                'display_name' => ['sometimes', 'nullable', 'string', 'not_regex:/@/'],
+                'reply_to_email' => ['sometimes', 'nullable', 'string', 'email'],
+                'reply_to_name' => ['sometimes', 'nullable', 'string', 'not_regex:/@/'],
+                'bcc_recipients' => ['nullable', 'array'],
+                'bcc_recipients.*' => ['email'],
+                'to_recipients' => ['nullable', 'array'],
+                'to_recipients.*' => ['email'],
+                'subject_template' => ['nullable', 'string', 'max:255'],
+                'intro_html' => ['nullable', 'string'],
+                'body_html' => ['nullable', 'string'],
+                'footer_html' => ['nullable', 'string', 'max:500'],
+                'status' => ['sometimes', 'boolean'],
+            ];
+        } else {
+            $rules = [
+                'name' => ['sometimes', 'string', 'max:255'],
+                'from' => ['required', 'string', 'not_regex:/[@\s]/'],
+                'display_name' => ['required', 'string', 'not_regex:/@/'],
+                'reply_to_email' => ['required', 'string', 'email'],
+                'reply_to_name' => ['required', 'string', 'not_regex:/@/'],
+                'bcc_recipients' => ['nullable', 'array'],
+                'bcc_recipients.*' => ['email'],
+                'to_recipients' => ['nullable', 'array'],
+                'to_recipients.*' => ['email'],
+                'subject_template' => ['nullable', 'string', 'max:255'],
+                'intro_html' => ['nullable', 'string'],
+                'body_html' => ['nullable', 'string'],
+                'footer_html' => ['nullable', 'string', 'max:500'],
+                'status' => ['sometimes', 'boolean'],
+            ];
+        }
 
         if ($catalog !== []) {
             $rules['detail_row_keys'] = ['nullable', 'array'];
@@ -269,6 +312,22 @@ class AdminEmailTemplateController extends AdminOrionController
                 ? AdminEmailTemplate::normalizeDetailRowLabels($data['detail_row_labels'])
                 : [];
             $data['detail_row_labels'] = $labels === [] ? null : $labels;
+        }
+
+        if ($slug === AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER) {
+            /** @var AdminEmailTemplate $entity */
+            $effectiveStatus = array_key_exists('status', $data)
+                ? (bool) $data['status']
+                : (bool) $entity->status;
+            $recipients = $data['to_recipients'] ?? $entity->to_recipients;
+            $recipients = is_array($recipients)
+                ? array_values(array_filter(array_map('trim', $recipients), static fn ($e) => $e !== ''))
+                : [];
+            if ($effectiveStatus && $recipients === []) {
+                throw ValidationException::withMessages([
+                    'to_recipients' => ['Add at least one TO recipient when the template is active.'],
+                ]);
+            }
         }
 
         return $data;

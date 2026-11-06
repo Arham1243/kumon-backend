@@ -2,7 +2,7 @@
 
 namespace App\Modules\Core\Services;
 
-use App\Modules\Administration\Models\User;
+use App\Modules\Administration\Models\Admin\AdminEmailTemplate;
 use App\Modules\Administration\Services\AdminOpenAttendanceMailer;
 use App\Modules\Core\Models\Company;
 
@@ -26,29 +26,36 @@ class OpenAttendanceReminderService
         ];
 
         Company::query()->orderBy('id')->each(function (Company $company) use (&$stats): void {
-            $open = $this->openAttendanceQuery->openAttendancesForCompany($company);
-            if ($open->isEmpty()) {
-                $stats['companies_skipped']++;
-
-                return;
-            }
-
-            $recipients = User::withoutGlobalScopes()
+            $template = AdminEmailTemplate::withoutGlobalScopes()
                 ->where('company_id', $company->id)
-                ->where('status', 'active')
-                ->whereNotNull('email')
-                ->whereHas('role', fn ($query) => $query->where('is_super_admin', true))
-                ->get();
+                ->where('slug', AdminEmailTemplate::SLUG_OPEN_ATTENDANCE_REMINDER)
+                ->where('status', true)
+                ->first();
 
-            if ($recipients->isEmpty()) {
+            if ($template === null) {
                 $stats['companies_skipped']++;
 
                 return;
             }
+
+            $rawRecipients = $template->to_recipients;
+            $toEmails = is_array($rawRecipients)
+                ? array_values(array_unique(array_filter(array_map('trim', $rawRecipients), static fn ($e) => $e !== '')))
+                : [];
+
+            if ($toEmails === []) {
+                $stats['companies_skipped']++;
+
+                return;
+            }
+
+            $checkInCount = $this->openAttendanceQuery->countCheckInsForCompanyOnDate($company);
+            $checkOutCount = $this->openAttendanceQuery->countCheckOutsForCompanyOnDate($company);
+            $open = $this->openAttendanceQuery->openAttendancesForCompany($company);
 
             $stats['companies_messaged']++;
-            foreach ($recipients as $recipient) {
-                if ($this->mailer->sendReminder($recipient, $company, $open)) {
+            foreach ($toEmails as $toEmail) {
+                if ($this->mailer->sendReminder($toEmail, $company, $open, $checkInCount, $checkOutCount)) {
                     $stats['emails_sent']++;
                 } else {
                     $stats['emails_failed']++;

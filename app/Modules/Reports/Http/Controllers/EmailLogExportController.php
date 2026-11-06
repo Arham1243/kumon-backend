@@ -85,7 +85,7 @@ class EmailLogExportController extends Controller
     private function exportValue(EmailLog $log, string $column): mixed
     {
         return match ($column) {
-            'created_at' => $log->created_at ? format_date($log->created_at) : null,
+            'created_at' => $log->created_at ? format_date_time($log->created_at) : null,
             'recipient' => $log->recipient,
             'subject' => $log->subject,
             'template_slug' => $log->adminEmailTemplate?->name

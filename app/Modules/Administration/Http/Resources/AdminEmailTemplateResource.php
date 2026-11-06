@@ -21,6 +21,7 @@ class AdminEmailTemplateResource extends JsonResource
             'reply_to_email' => filled($this->reply_to_email) ? $this->reply_to_email : $mail['reply_to_email'],
             'reply_to_name' => filled($this->reply_to_name) ? $this->reply_to_name : $mail['reply_to_name'],
             'bcc_recipients' => is_array($this->bcc_recipients) ? $this->bcc_recipients : [],
+            'to_recipients' => is_array($this->to_recipients) ? $this->to_recipients : [],
             'subject_template' => filled($this->subject_template)
                 ? $this->subject_template
                 : AdminEmailTemplate::defaultSubjectTemplateForSlug($this->slug),

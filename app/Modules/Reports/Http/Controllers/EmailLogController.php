@@ -145,12 +145,7 @@ class EmailLogController extends AdminOrionController
             'created_at_range' => function (Builder $query, mixed $value): void {
                 if (is_array($value) && count($value) === 2) {
                     [$from, $to] = $value;
-                    if ($from) {
-                        $query->whereDate('admin_email_logs.created_at', '>=', $from);
-                    }
-                    if ($to) {
-                        $query->whereDate('admin_email_logs.created_at', '<=', $to);
-                    }
+                    apply_created_at_range_in_company_tz($query, 'admin_email_logs.created_at', $from, $to);
                 }
             },
         ];
