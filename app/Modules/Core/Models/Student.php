@@ -20,7 +20,7 @@ class Student extends Model
 
     protected $table = 'students';
 
-    protected $guarded = ['id', 'uuid', 'created_at', 'updated_at'];
+    protected $guarded = ['id', 'uuid', 'created_at', 'updated_at', 'card_assigned_at'];
 
     protected function casts(): array
     {
@@ -32,6 +32,7 @@ class Student extends Model
             'maths' => 'boolean',
             'reading' => 'boolean',
             'tuition_fee' => 'decimal:2',
+            'card_assigned_at' => 'datetime',
         ];
     }
 
@@ -135,6 +136,25 @@ class Student extends Model
 
     protected static function booted()
     {
+        static::saving(function (Student $student) {
+            if (! $student->isDirty('card_uid')) {
+                return;
+            }
+
+            $oldNorm = CardUid::normalize($student->getOriginal('card_uid'));
+            $newNorm = CardUid::normalize($student->card_uid);
+
+            if ($newNorm === null) {
+                $student->card_assigned_at = null;
+
+                return;
+            }
+
+            if ($oldNorm !== $newNorm) {
+                $student->card_assigned_at = now();
+            }
+        });
+
         static::updating(function (Student $student) {
             if ($student->isDirty('student_id')) {
                 $student->student_id = $student->getOriginal('student_id');

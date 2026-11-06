@@ -26,6 +26,7 @@ class StudentResource extends JsonResource
             'reading' => (bool) $this->reading,
             'tuition_fee' => $this->tuition_fee !== null ? (float) $this->tuition_fee : null,
             'card_uid' => $this->card_uid,
+            'card_assigned_at' => $this->card_assigned_at?->toIso8601String(),
             'created_at' => $this->created_at,
         ];
     }
