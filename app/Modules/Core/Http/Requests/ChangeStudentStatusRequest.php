@@ -2,7 +2,9 @@
 
 namespace App\Modules\Core\Http\Requests;
 
+use App\Enums\CompanyTimezone;
 use App\Modules\Core\Models\Student;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ChangeStudentStatusRequest extends FormRequest
@@ -23,8 +25,20 @@ class ChangeStudentStatusRequest extends FormRequest
         }
 
         if ($student->status) {
+            $companyTz = $student->company?->timezone;
+            if ($companyTz === null || $companyTz === '' || ! CompanyTimezone::isValid($companyTz)) {
+                $companyTz = (string) config('app.timezone');
+            }
+
+            $todayInCompanyTz = Carbon::now($companyTz)->format('Y-m-d');
+
             $rules = [
-                'end_date' => ['required', 'date', 'date_format:Y-m-d', 'before_or_equal:today'],
+                'end_date' => [
+                    'required',
+                    'date',
+                    'date_format:Y-m-d',
+                    'before_or_equal:'.$todayInCompanyTz,
+                ],
             ];
 
             if ($student->start_date !== null) {
