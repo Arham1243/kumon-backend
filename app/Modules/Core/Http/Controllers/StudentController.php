@@ -44,6 +44,8 @@ class StudentController extends AdminOrionController
             'parent_2_mobile',
             'start_date',
             'end_date',
+            'maths',
+            'reading',
             'tuition_fee',
             'card_uid',
             'status',
@@ -61,7 +63,50 @@ class StudentController extends AdminOrionController
             'tuition_fee',
             'card_uid',
             'status',
+            'start_date',
+            'end_date',
         ];
+    }
+
+    /**
+     * Orion does not support the "between" operator; map one range filter to nested >= and <= clauses.
+     *
+     * @param  array<string, mixed>  $filterDescriptor
+     * @return array<string, mixed>
+     */
+    protected function beforeFilterApplied(OrionRequest $request, array $filterDescriptor): array
+    {
+        $field = $filterDescriptor['field'] ?? null;
+        $operator = $filterDescriptor['operator'] ?? '=';
+        $value = $filterDescriptor['value'] ?? null;
+
+        if (
+            in_array($field, ['start_date', 'end_date'], true)
+            && $operator === 'between'
+            && is_array($value)
+            && count($value) === 2
+        ) {
+            [$from, $to] = $value;
+            if ($from && $to) {
+                return [
+                    'type' => 'and',
+                    'nested' => [
+                        [
+                            'field' => $field,
+                            'operator' => '>=',
+                            'value' => $from,
+                        ],
+                        [
+                            'field' => $field,
+                            'operator' => '<=',
+                            'value' => $to,
+                        ],
+                    ],
+                ];
+            }
+        }
+
+        return $filterDescriptor;
     }
 
     protected function beforeSave(OrionRequest $request, Model $entity): void

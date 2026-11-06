@@ -7,6 +7,7 @@ use App\Modules\Core\Http\Requests\AttendanceRequest;
 use App\Modules\Core\Http\Resources\AttendanceResource;
 use App\Modules\Core\Models\Attendance;
 use App\Modules\Core\Models\Student;
+use App\Modules\Core\Services\AttendanceListQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -70,33 +71,26 @@ class AttendanceController extends AdminOrionController
             return $query;
         }
 
-        $table = (new Attendance)->getTable();
-
-        $handlers = [
-            'date_range' => function (Builder $query, mixed $value) use ($table): void {
-                if (! is_array($value) || count($value) !== 2) {
-                    return;
-                }
-
-                [$from, $to] = $value;
-                if ($from) {
-                    $query->whereDate("{$table}.date", '>=', $from);
-                }
-                if ($to) {
-                    $query->whereDate("{$table}.date", '<=', $to);
-                }
-            },
-        ];
-
-        foreach ($request->input('customFilters') as $filter) {
-            $field = $filter['field'] ?? null;
-            $value = $filter['value'] ?? null;
-            if ($field && isset($handlers[$field]) && $value !== null) {
-                $handlers[$field]($query, $value);
-            }
+        $customFilters = $request->input('customFilters');
+        if (! is_array($customFilters)) {
+            return $query;
         }
 
+        AttendanceListQuery::applySearchCustomFilters($query, $customFilters, true);
+
         return $query;
+    }
+
+    public function summary(Request $request)
+    {
+        $customFilters = $request->input('customFilters', []);
+        if (! is_array($customFilters)) {
+            $customFilters = [];
+        }
+
+        $data = AttendanceListQuery::summaryCounts($customFilters);
+
+        return response()->json(['data' => $data]);
     }
 
     protected function beforeSave(OrionRequest $request, Model $entity): void
@@ -109,13 +103,6 @@ class AttendanceController extends AdminOrionController
         if ($user && $user->company_id && empty($entity->company_id)) {
             $entity->company_id = $user->company_id;
         }
-    }
-
-    public function deleteAttendance(Attendance $attendance)
-    {
-        $attendance->delete();
-
-        return response()->json(['message' => 'Attendance deleted successfully.']);
     }
 
     public function studentOptions(Request $request)

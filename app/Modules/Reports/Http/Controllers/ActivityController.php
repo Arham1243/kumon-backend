@@ -27,7 +27,7 @@ class ActivityController extends AdminOrionController
 
     public function includes(): array
     {
-        return ['causer'];
+        return ['causer', 'subject'];
     }
 
     public function sortableBy(): array
@@ -66,7 +66,10 @@ class ActivityController extends AdminOrionController
 
         $this->applyCustomFilters($query, $request);
 
-        return $query->with(['causer:id,name,email,uuid']);
+        return $query->with([
+            'causer:id,name,email,uuid',
+            'subject',
+        ]);
     }
 
     protected function applyCustomFilters(Builder $query, Request $request): Builder
